@@ -197,6 +197,7 @@ class App extends Container
         $return = [];
         $return['time'] = number_format(microtime(true) - LFLY_START_TIME, 6);
         $return['memory'] = $this->validate->convFileSize(memory_get_usage() - LFLY_START_MEMORY);
+        $return['files'] = count(get_included_files());
         return $return;
     }
 }

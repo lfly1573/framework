@@ -67,7 +67,7 @@ class Controller
             if ($pageCode != 200) {
                 $response = $this->app->response->init($this->formatMessage($return), $pageCode)->setTemplate($pageCode);
             } else {
-                $response = $this->app->response->init($this->formatMessage($return), $pageCode)->setTemplate(isset($return['extra']['tpl']) ? $return['extra']['tpl'] : 'show_message');
+                $response = $this->app->response->init($this->formatMessage($return), $pageCode)->setTemplate(isset($return['extra']['tpl']) ? $return['extra']['tpl'] : 'message');
             }
         }
         throw new HttpResponseException($response);

@@ -67,6 +67,30 @@ class Exception
     }
 
     /**
+     * 获取调试信息
+     * @param bool $more 获取更多
+     * @return array
+     */
+    public function debug($more = false)
+    {
+        $return = [
+            'Route Data' => $this->app->request->route(),
+            'GET Data' => $this->app->request->get(),
+            'POST Data' => $this->app->request->post(),
+            'Files' => $this->app->file->getFile(),
+            'Cookies' => $this->app->cookie->getAll(),
+            'Session' => $this->app->session->getAll(),
+            'Db' => $this->app->db->getLog(),
+        ];
+        if ($more) {
+            $return['Server Data'] = $this->app->request->server();
+            $return['Constants'] = $this->getConst();
+        }
+        $return['System'] = $this->app->runtimeInfo();
+        return $return;
+    }
+
+    /**
      * 收集异常数据
      * @param Throwable $exception
      * @return array
@@ -91,17 +115,7 @@ class Exception
                 'code' => $this->getCode($exception),
                 'message' => $exception->getMessage(),
                 'traces' => $traces,
-                'tables' => [
-                    'Route Data' => $this->app->request->route(),
-                    'GET Data' => $this->app->request->get(),
-                    'POST Data' => $this->app->request->post(),
-                    'Files' => $this->app->file->getFile(),
-                    'Cookies' => $this->app->cookie->getAll(),
-                    'Session' => $this->app->session->getAll(),
-                    'Server Data' => $this->app->request->server(),
-                    'Constants' => $this->getConst(),
-                    'Db' => $this->app->db->getLog(),
-                ],
+                'tables' => $this->debug(true),
             ];
         } else {
             // 部署模式仅显示 Code 和 Message
@@ -121,11 +135,12 @@ class Exception
     protected function getCode(Throwable $exception)
     {
         $code = $exception->getCode();
-
         if (!$code && $exception instanceof ErrorException) {
             $code = $exception->getSeverity();
         }
-
+        if ($code == 0) {
+            $code = -1;
+        }
         return $code;
     }
 

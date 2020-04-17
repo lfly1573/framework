@@ -1,0 +1,196 @@
+{eval}
+if (!function_exists('parse_class')) {
+    function parse_class($name)
+    {
+        $names = explode('\\', $name);
+        return end($names);
+    }
+}
+
+if (!function_exists('parse_file')) {
+    function parse_file($file)
+    {
+        return str_replace(array(ROOT_PATH, LFLY_PATH), array('', 'lfly/'), $file);
+    }
+}
+
+if (!function_exists('parse_args')) {
+    function parse_args($args)
+    {
+        $result = [];
+        foreach ($args as $key => $item) {
+            switch (true) {
+                case is_object($item):
+                    $value = sprintf('<em>object</em>(%s)', parse_class(get_class($item)));
+                    break;
+                case is_array($item):
+                    if (count($item) > 3) {
+                        $value = sprintf('[%s, ...]', parse_args(array_slice($item, 0, 3)));
+                    } else {
+                        $value = sprintf('[%s]', parse_args($item));
+                    }
+                    break;
+                case is_string($item):
+                    if (strlen($item) > 20) {
+                        $value = sprintf(
+                            '\'%s...\'',
+                            htmlentities($item),
+                            htmlentities(substr($item, 0, 20))
+                        );
+                    } else {
+                        $value = sprintf("'%s'", htmlentities($item));
+                    }
+                    break;
+                case is_int($item):
+                case is_float($item):
+                    $value = $item;
+                    break;
+                case is_null($item):
+                    $value = '<em>null</em>';
+                    break;
+                case is_bool($item):
+                    $value = '<em>' . ($item ? 'true' : 'false') . '</em>';
+                    break;
+                case is_resource($item):
+                    $value = '<em>resource</em>';
+                    break;
+                default:
+                    $value = htmlentities(str_replace("\n", '', var_export(strval($item), true)));
+                    break;
+            }
+
+            $result[] = is_int($key) ? $value : "'{$key}' => {$value}";
+        }
+
+        return implode(', ', $result);
+    }
+}
+if (!function_exists('echo_value')) {
+    function echo_value($val)
+    {
+        if (is_array($val) || is_object($val)) {
+            echo htmlentities(json_encode($val, JSON_PRETTY_PRINT));
+        } elseif (is_bool($val)) {
+            echo $val ? 'true' : 'false';
+        } elseif (is_scalar($val)) {
+            echo htmlentities($val);
+        } else {
+            echo 'Resource';
+        }
+    }
+}
+{/eval}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="robots" content="noindex,nofollow" />
+    <title>错误信息</title>
+    <style>
+		html {
+			margin: 0;
+			padding: 0;
+		    height: 100%;
+			font-size: 10px;
+		}
+        body {
+            color: #333;
+            font: 1.6rem Verdana, "Helvetica Neue", helvetica, Arial, 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 2rem;
+        }
+		.area {
+			border-radius: .8rem;
+			margin-bottom: 2rem;
+			line-height: 1.8;
+			box-sizing: border-box;
+			padding: 1rem;
+		}
+		.message {
+			background-color: #FE683D;
+			color: #ffffff;
+		}
+		h1 {
+			font-size: 2.4rem;
+			padding: 0;
+			margin: 0;
+		}
+		.sourcecode {
+			padding: 0.1rem;
+			line-height: 1.4;
+			background-color: #282C35;
+			color: #ffffff;
+			font-size: 1.4rem;
+		}
+		.sourcecode pre {
+			padding: 0 1rem;
+		}
+		.errorline {
+			background-color: #ffff00;
+			color: #ff0000;
+		}
+		.filelist {
+			background-color: #efefef;
+			font-size: 1.4rem;
+		}
+		.filelist div {
+			margin: 0.6rem 0;
+		}
+		.filelist span {
+			display: inline-block;
+			border-radius: .5rem;
+			margin-right: .5rem;
+		}
+		.filelist_num {
+			background-color: #cccccc;
+			width: 4rem;
+			text-align: center;
+		}
+		.filelist_file {
+			background-color: #B0DCFE;
+			padding: 0 .3rem;
+		}
+		.filelist_line {
+			background-color: #ffffff;
+			color: #888888;
+			font-size: 1.2rem;
+			padding: 0 .3rem;
+		}
+    </style>
+</head>
+<body>
+	<div class="area message">
+		<h1>[{$code}] {$message}</h1>
+		<!--{if isset($traces)}-->
+			{eval $curfile = reset($traces); }
+			<div>{$curfile['name']} in {echo parse_file($curfile['file'])} line {$curfile['line']}</div>
+		<!--{else}-->
+			<div>非常抱歉，系统出现错误，请联系管理员并告知以上错误信息方便处理。</div>
+		<!--{/if}-->
+	</div>
+	<!--{if isset($traces)}-->
+		<div class="area sourcecode">
+			<pre><ol start="{$curfile['source']['first']}">
+				<!--{loop $curfile['source']['source'] $key $value}-->
+					<li{if $curfile['line'] == $key + $curfile['source']['first']} class="errorline"{/if}>{echo rtrim($value)}</li>
+				<!--{/loop}-->
+				</ol></pre>
+		</div>
+		<div class="area filelist">
+			<!--{loop array_reverse($curfile['trace']) $key $value}-->
+				<div>
+					<span class="filelist_num">{echo $key+1}</span>
+					<span class="filelist_file">{if isset($value['file'])}{echo parse_file($value['file'])}{elseif $key+1==count($curfile['trace'])}{echo parse_file($curfile['file'])}{/if}</span>
+					{echo sprintf('%s%s%s(%s)', isset($value['class']) ? parse_class($value['class']) : '', isset($value['type']) ? $value['type'] : '', strpos($value['function'], '{closure') ? '<em>closure</em>' : $value['function'], isset($value['args']) ? parse_args($value['args']) : '')} 
+					<span class="filelist_line">{if isset($value['file']) && isset($value['line'])}line {$value['line']}{elseif $key+1==count($curfile['trace'])}line {$curfile['line']}{/if}</span>
+				</div>
+			<!--{/loop}-->
+		</div>
+	<!--{/if}-->
+	
+	<!--{if isset($tables)}-->
+		{eval $debug_system_info = $tables;}
+		{template debug}
+	<!--{/if}-->
+</body>
+</html>

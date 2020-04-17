@@ -189,6 +189,8 @@ class Template implements TemplateHandlerInterface
             return $this->transAmp($matches[0]);
         }, $template);
         $template = str_replace('#$#', '$', $template);
+        $template = str_replace('#{#', '{', $template);
+        $template = str_replace('#}#', '}', $template);
 
         return $template;
     }

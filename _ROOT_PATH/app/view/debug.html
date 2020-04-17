@@ -1,0 +1,88 @@
+{eval}
+if (!function_exists('echo_value')) {
+    function echo_value($val)
+    {
+        if (is_array($val) || is_object($val)) {
+            echo htmlentities(json_encode($val, JSON_PRETTY_PRINT));
+        } elseif (is_bool($val)) {
+            echo $val ? 'true' : 'false';
+        } elseif (is_scalar($val)) {
+            echo htmlentities($val);
+        } else {
+            echo 'Resource';
+        }
+    }
+}
+{/eval}
+<!--{if isset($debug_system_info)}-->
+<style>
+	.debug_system_info {
+		border-radius: 8px;
+		border: 1px solid #ccc;
+		line-height: 1.8;
+		box-sizing: border-box;
+		padding: 10px;
+		background-color: #ffffff;
+		font-size: 1.4rem;
+		margin: 20px 0;
+	}
+	.exception-var table{
+	    width: 100%;
+	    margin: 0 0 12px;
+	    box-sizing: border-box;
+	    table-layout:fixed;
+	    word-wrap:break-word;
+	}
+	.exception-var table caption{
+	    text-align: left;
+	    font-size: 16px;
+	    font-weight: bold;
+	    padding: 6px 0;
+	}
+	.exception-var table caption small{
+	    font-weight: 300;
+	    display: inline-block;
+	    margin-left: 10px;
+	    color: #ccc;
+	}
+	.exception-var table tbody{
+	    font-size: 13px;
+	    font-family: Consolas, "Liberation Mono", Courier, "微软雅黑",serif;
+	}
+	.exception-var table td{
+	    padding: 0 6px;
+	    vertical-align: top;
+	    word-break: break-all;
+	}
+	.exception-var table tr.evenrow td{
+	    background-color: #efefef;
+	}
+	.exception-var table td:first-child{
+	    width: 20%;
+	    font-weight: bold;
+	}
+	.exception-var table td pre{
+	    margin: 0;
+	}
+</style>
+<div class="debug_system_info exception-var">
+	<!--{loop $debug_system_info $label $value}-->
+		<table>
+			<!--{if empty($value)}-->
+			<caption>{$label}<small>empty</small></caption>
+			<!--{else}-->
+				<caption>{$label}</caption>
+				<tbody>
+					{eval $i=0;}
+					<!--{loop $value $key $val}-->
+						<tr{if $i++%2==0} class="evenrow"{/if}>
+							<td>{$key}</td>
+							<td> {echo echo_value($val)}</td>
+						</tr>
+					<!--{/loop}-->
+				</tbody>
+			<!--{/if}-->
+		</table>
+	<!--{/loop}-->
+</div>
+<!--{/if}-->
