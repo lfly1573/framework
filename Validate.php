@@ -743,13 +743,12 @@ class Validate
      */
     public function convTime($timestamp, $mode = 'FS')
     {
-        $curtime = time();
         if ($timestamp <= 0) {
             return '';
         }
         switch (strtoupper($mode)) {
             case 'FT':
-                $mode = ($this->convTime($timestamp, 'FD') == $this->convTime($curtime, 'FD')) ? 'H:i:s' : 'Y-m-d';
+                $mode = ($this->convTime($timestamp, 'FD') == $this->convTime(time(), 'FD')) ? 'H:i:s' : 'Y-m-d';
                 break;
             case 'FS':
                 $mode = 'Y-m-d H:i:s';

@@ -34,7 +34,7 @@ class Controller
     {
         $this->app = $app;
         $this->request = $this->app->request;
-        // 控制器初始化
+        //控制器初始化
         $this->init();
     }
 
@@ -49,7 +49,7 @@ class Controller
      * 
      * @throws HttpResponseException
      */
-    public function showMessage(int $code, $message, array $data = [], array $extra = [], $type = '')
+    public function showMessage(int $code, $message = '', array $data = [], array $extra = [], $type = '')
     {
         $return = ['code' => $code, 'message' => $message, 'data' => $data, 'extra' => $extra];
         $pageCode = ($code >= 100 && $code <= 600) ? $code : 200;
@@ -160,10 +160,10 @@ class Controller
     /**
      * 后台运行脚本
      * @param string $file  运行文件
-     * @param string $param 参数
+     * @param array  $param 参数
      * @return string|bool
      */
-    public function runPhp($file = '', $param = '')
+    public function runPhp($file = '', $param = [])
     {
         static $realPath = '';
         if ($realPath == '') {
@@ -181,7 +181,22 @@ class Controller
             }
         }
         if ($file != '') {
-            pclose(popen(($this->app->runningInWindows() ? 'start ' : '') . "{$realPath} -f {$file}" . ($param != '' ? " {$param}" : '') . ' &', 'r'));
+            $paramStr = '';
+            if (!empty($param)) {
+                $param = array_map('addslashes', $param);
+                $paramStr = ' "' . implode('" "', $param) . '"';
+            }
+            if (strpos($file, '@')) {
+                $file = addslashes($file);
+                $paramStr = " {$file}{$paramStr}";
+                $file = APP_PATH . 'console';
+            }
+            $command = "{$realPath} -f {$file}" . $paramStr;
+            if ($this->app->runningInWindows()) {
+                pclose(popen('start /B ' . $command, 'r'));
+            } else {
+                exec($command . ' > /dev/null &');
+            }
             return true;
         } else {
             return $realPath;
@@ -189,14 +204,14 @@ class Controller
     }
 
     /**
-     * 自定义初始化
+     * 继承实现：自定义初始化
      */
     protected function init()
     {
     }
 
     /**
-     * 对提示信息数据进行二次处理
+     * 继承实现：对提示信息数据进行二次处理
      * @param  array $data  数据
      * @param  string $type 数据类型 json/jsonp
      * @return array

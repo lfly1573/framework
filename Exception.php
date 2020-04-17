@@ -86,7 +86,7 @@ class Exception
             $return['Server Data'] = $this->app->request->server();
             $return['Constants'] = $this->getConst();
         }
-        $return['System'] = $this->app->runtimeInfo();
+        $return['Runtime'] = $this->app->runtimeInfo();
         return $return;
     }
 
