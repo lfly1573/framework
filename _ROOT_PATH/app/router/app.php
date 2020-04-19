@@ -43,3 +43,5 @@ Route::fallback($callback);
 可不存在变量：{name?}
 完全匹配结尾：$
  */
+
+Route::fallback('Index@index');

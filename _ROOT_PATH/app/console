@@ -2,6 +2,6 @@
 
 @set_time_limit(0);
 define('ROOT_PATH', realpath(__DIR__ . '/../') . DIRECTORY_SEPARATOR);
-$app = require ROOT_PATH . 'vendor/lfly/framework/init.php';
+$app = require ROOT_PATH . 'vendor/lfly1573/framework/src/init.php';
 $console = $app->console;
 $console->run();

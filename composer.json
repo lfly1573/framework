@@ -1,0 +1,25 @@
+{
+    "name": "lfly1573/framework",
+    "description": "The LFLY Framework.",
+    "keywords": [
+        "framework",
+        "lfly"
+    ],
+    "type": "library",
+    "homepage": "http://lfly.cn/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "lfly1573",
+            "email": "lfly1573@126.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "lfly\\": "src/"
+        }
+    }
+}

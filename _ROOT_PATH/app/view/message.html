@@ -161,5 +161,9 @@
 			</div>
 		<!--{/if}-->
     </div>
+	<!--{if \App::isDebug()}-->
+		{eval $debug_system_info=\App::getInstance()->exception->debug();}
+		<div style="position:relative;top:calc(100vh);">{template debug}</div>
+	<!--{/if}-->
 </body>
 </html>
