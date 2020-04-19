@@ -29,7 +29,7 @@ return [
     //cookie设置
     'cookie' => [
         //cookie默认前缀
-        'prefix' => 'fc_',
+        'prefix' => 'lf_',
         //cookie保存路径
         'path' => '/',
         //cookie有效域名
@@ -76,7 +76,7 @@ return [
                 //连接端口
                 'port' => '3306',
                 //库名
-                'database' => 'flycube',
+                'database' => '',
                 //用户名
                 'username' => 'root',
                 //密码
@@ -89,7 +89,7 @@ return [
                 //编码默认采用utf8mb4
                 'charset' => 'utf8mb4',
                 //表前缀
-                'prefix' => 'fc_',
+                'prefix' => '',
                 //设置主服务器数量
                 'master_num' => 1,
                 //读写分离
@@ -117,7 +117,7 @@ return [
                 //库编号
                 'database' => 0,
                 //数据前缀
-                'prefix' => 'fc_',
+                'prefix' => '',
             ],
         ],
     ]

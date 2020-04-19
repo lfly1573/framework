@@ -5,4 +5,6 @@
  */
 
 //格式如：'别名或抽象类'=>'具体类或者匿名函数'
-return [];
+return [
+    \lfly\contract\TemplateHandlerInterface::class => \lfly\view\Template::class
+];
