@@ -87,6 +87,8 @@ class Exception
             $return['Constants'] = $this->getConst();
         }
         $return['Runtime'] = $this->app->runtimeInfo();
+        $return['Runtime']['controller'] = $this->app->request->controller();
+        $return['Runtime']['action'] = $this->app->request->action();
         return $return;
     }
 

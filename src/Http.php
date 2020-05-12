@@ -112,6 +112,9 @@ class Http
             $data = $this->app->invokeFunction($routeData['callback'], $routeData['args']);
         } elseif (!empty($routeData['controller']) && !empty($routeData['action'])) {
             if (!class_exists($routeData['controller'])) {
+                if (!$this->app->isDebug()) {
+                    return $this->app->response->init('', 404)->setTemplate('404');
+                }
                 throw new LogicException('class not exists: ' . $routeData['controller']);
             }
             $instance = $this->app->make($routeData['controller'], [], true);
@@ -121,7 +124,10 @@ class Http
             $data = $this->app->middleware->pipeline('controller')
                 ->send($this->app->request)
                 ->then(function () use ($instance, $action, $vars) {
-                    if (!is_callable([$instance, $action])) {
+                    if ($action[0] == '_' || !is_callable([$instance, $action])) {
+                        if (!$this->app->isDebug()) {
+                            return $this->app->response->init('', 404)->setTemplate('404');
+                        }
                         throw new LogicException('method not exists: ' . get_class($instance) . '->' . $action . '()');
                     }
                     return $this->app->invokeMethod([$instance, $action], $vars);
@@ -174,20 +180,20 @@ class Http
         $responseClassname = $this->app->getAlias('response');
         if ($response instanceof $responseClassname) {
             return $response;
-        } elseif (!is_null($response)) {
-            if ($this->app->request->isJson() || $this->app->request->isAjax() || $this->app->request->isPjax() || (is_string($response) && $response[0] == '{' && !is_null(json_decode($response)))) {
+        } else {
+            if (is_null($response)) {
+                $data = ob_get_clean();
+                $response = (false === $data) ? '' : $data;
+            }
+            if ($this->app->request->isJson() || $this->app->request->isAjax() || $this->app->request->isPjax() || (is_string($response) && $response != '' && $response[0] == '{' && !is_null(json_decode($response)))) {
+                $status = ('' === $response) ? 204 : 200;
                 if ($this->app->request->param('callback', '') != '') {
-                    return $this->app->response->engine('jsonp')->init($response);
+                    return $this->app->response->engine('jsonp')->init($response, $status);
                 }
-                return $this->app->response->engine('json')->init($response);
+                return $this->app->response->engine('json')->init($response, $status);
             } else {
                 return $this->app->response->init($response)->setTemplate();
             }
-        } else {
-            $data = ob_get_clean();
-            $content = (false === $data) ? '' : $data;
-            $status = ('' === $content && $this->app->request->isJson()) ? 204 : 200;
-            return $this->app->response->init($content, $status);
         }
     }
 }

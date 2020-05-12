@@ -9,7 +9,7 @@
 Route::打头
 ->group(function () {})
 ->domain($domain)
-->where(['id' => '[0-9]+')
+->where(['id' => '[0-9]+'])
 ->middleware(['first', 'second'])
 ->namespace('命名空间')
 ->prefix('uri前缀')
@@ -44,4 +44,7 @@ Route::fallback($callback);
 完全匹配结尾：$
  */
 
-Route::fallback('Index@index');
+Route::get('$', 'Index@index');
+Route::fallback(function () {
+    return \App::getInstance()->response->init(['code' => 0, 'message' => '功能不存在或正在建设中……', 'extra' => ['url' => \Request::pre(), 'ctrl' => 'stop']], 404)->setTemplate('message');
+});

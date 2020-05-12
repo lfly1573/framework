@@ -1,7 +1,8 @@
 <?php
 
 define('ROOT_PATH', realpath(__DIR__ . '/../') . DIRECTORY_SEPARATOR);
-$app = require ROOT_PATH . 'vendor/lfly1573/framework/src/init.php';
+require ROOT_PATH . 'vendor/autoload.php';
+$app = new \lfly\App();
 $http = $app->http;
 $response = $http->run();
 $response->send();

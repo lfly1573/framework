@@ -14,7 +14,7 @@ class Redirect extends Response
 
     protected function output($data)
     {
-        if (!in_array($this->getCode(), array(301, 302))) {
+        if (!in_array($this->getCode(), array(200, 301, 302))) {
             $this->setCode(301);
         }
         $this->cacheControl('no-cache,must-revalidate');

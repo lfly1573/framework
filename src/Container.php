@@ -496,9 +496,8 @@ class Container implements ArrayAccess, IteratorAggregate, Countable
 
     /**
      * Countable
+     * count(obj)
      */
-
-    //count(obj)
     public function count()
     {
         return count($this->instances);
@@ -506,9 +505,8 @@ class Container implements ArrayAccess, IteratorAggregate, Countable
 
     /**
      * IteratorAggregate
+     * foreach(obj as $key => $value)
      */
-
-    //foreach(obj as $key => $value)
     public function getIterator()
     {
         return new ArrayIterator($this->instances);

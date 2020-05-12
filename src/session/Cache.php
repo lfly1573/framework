@@ -59,7 +59,7 @@ class Cache implements SessionHandlerInterface
         $curid = $this->app->cookie->get($this->config['name']);
         if (empty($curid)) {
             $curid = $this->app->uniqid();
-            $this->app->cookie->set($this->config['name'], $curid, $this->config['cookie_lifetime']);
+            $this->app->cookie->set($this->config['name'], $curid, $this->config['cookie_lifetime'], true);
         }
         $this->sessionId = $curid;
         $this->refreshData();

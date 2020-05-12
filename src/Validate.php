@@ -7,11 +7,23 @@
 namespace lfly;
 
 use Closure;
+use lfly\util\Crypto;
 
+/**
+ * 数据验证类
+ * 对输入变量直接调用方法：\Validate::load(验证器类)->batch(是否批量)->scene(场景值)->checkRequest([验证规则])
+ * 自定义数据验证: \Validate::load(验证器类)->batch(是否批量)->scene(场景值)->check([数据], [验证规则])
+ * 验证器类默认放在 app\validate\ 目录下，继承该类设定 $rule 以及 $scene 的值，或者自定义验证方法等
+ * $scene场景值设定示例：
+ * protected $scene = ['edit' => ['ruleKey(复用rule中的定义)', 'age'=>'自定义验证']];
+ * 验证示例（批量验证错误返回数组，否则返回字符串）：
+ * $v = \Validate::batch()->checkRequest(['userName,user_name|用户名' => 'require|alphaDash|length:5,20']);
+ * if (!$v->getResult()) { $error = $v->getError(); } else { $data = $v->getFormattedData(); }
+ */
 class Validate
 {
     /**
-     * 当前验证规则 ['param,formattedParam|文字描述'=>'int|require|>:100']
+     * 当前验证规则 ['param,formattedParam|文字描述'=>'require(必须)|int(类型)|>:100(额外条件))']
      * @var array
      */
     protected $rule = [];
@@ -73,7 +85,7 @@ class Validate
     ];
 
     /**
-     * 验证规则
+     * 类型验证规则
      * @var array
      */
     protected $type = [
@@ -104,8 +116,8 @@ class Validate
      * @var array
      */
     protected $typeMsg = [
-        'require' => ':attribute必须设定',
-        'default' => ':attribute格式不正确',
+        'require' => ':attribute必须设定',      //require (必填)
+        'default' => ':attribute格式不正确',    //default:0 (默认值)
 
         'int' => ':attribute必须为整数',
         'number' => ':attribute必须为数字',
@@ -125,22 +137,38 @@ class Validate
         'date' => ':attribute不是一个正确的日期',
         'dateTime' => ':attribute不是一个正确的日期时间',
 
-        'in' => ':attribute必须在取值范围 :rule 内',
-        'notIn' => ':attribute不能在 :rule 范围内',
-        'between' => ':attribute取值必须在 :rule 范围内',
-        'notBetween' => ':attribute取值不能在 :rule 范围内',
-        'length' => ':attribute的长度只能为 :rule',
-        'after' => ':attribute不能早于 :rule',
-        'before' => ':attribute不能晚于 :rule',
-        'confirm' => ':attribute两次验证不一致',
-        'egt' => ':attribute必须大于等于 :rule',
-        'gt' => ':attribute必须大于 :rule',
-        'elt' => ':attribute必须小于等于 :rule',
-        'lt' => ':attribute必须小于 :rule',
-        'eq' => ':attribute必须等于 :rule',
-        'ne' => ':attribute必须不等于 :rule',
-        'regex' => ':attribute格式不正确',
+        'in' => ':attribute必须在取值范围 :rule 内',            //in:1,2,3
+        'notIn' => ':attribute不能在 :rule 范围内',            //notIn:1,2,3
+        'between' => ':attribute取值必须在 :rule 范围内',      //between:1,10
+        'notBetween' => ':attribute取值不能在 :rule 范围内',   //notBetween:1,10
+        'length' => ':attribute的长度只能为 :rule',           //length:4,25 或者 length:4
+        'after' => ':attribute不能早于 :rule',               //after:2020-03-16 00:00:00
+        'before' => ':attribute不能晚于 :rule',              //before:2020-03-16 00:00:00
+        'confirm' => ':attribute两次验证不一致',              //confirm:password 或者 confirm (自动关联 field 和 field_confirm)
+        'submitToken' => '请求令牌已失效，请返回刷新重试。',     //submitToken:name
+        'checkToken' => '校验令牌已失效，请返回刷新重试。',      //checkToken:有效时间秒数
+        'egt' => ':attribute必须大于等于 :rule',              //>=:100
+        'gt' => ':attribute必须大于 :rule',                  //>:100
+        'elt' => ':attribute必须小于等于 :rule',              //<=:100
+        'lt' => ':attribute必须小于 :rule',                  //<:100
+        'eq' => ':attribute必须等于 :rule',                  //=:100
+        'ne' => ':attribute必须不等于 :rule',                //!=:100
+        'regex' => ':attribute格式不正确',                   //regex:\d{6} 或者 regex:name (先 \Validate::regex('name', '\d{6}') 添加规则)
     ];
+    /**
+     * 闭包判断或者类型闭包判断
+     * 传入参数：当前值, 当前规则, 全部值, 当前字段名
+     * 返回：true表示通过，返回字符串表示错误信息
+     * 'name' => function($value, $rule, $data, $field) { return 'lfly' == strtolower($value) ? true : false; }
+     */
+
+    /**
+     * 自定义方法判断
+     * 传入参数：当前值, 当前规则, 全部值, 当前字段名
+     * 提前定义错误提示可链式操作: \Validate::setTypeMsg('checkName', '错误信息')
+     * $rule = ['name' => 'checkName:rule']
+     * public function checkName($value, $rule, $data = [], $field = '')
+     */
 
     /**
      * 扩展验证
@@ -531,7 +559,7 @@ class Validate
             if ($length == $rule) {
                 return true;
             }
-            return $length;
+            return $rule;
         }
     }
 
@@ -585,6 +613,36 @@ class Validate
             return true;
         }
         return '';
+    }
+
+    /**
+     * 判断提交令牌
+     * @param mixed  $value 字段值
+     * @param mixed  $rule  令牌名称
+     * @return bool
+     */
+    public function builtSubmitToken($value, $rule = null)
+    {
+        return Container::getInstance()->request->checkToken($value, false, $rule);
+    }
+
+    /**
+     * 判断提交校验参数
+     * @param mixed $value 字段值
+     * @param mixed $rule  验证规则
+     * @return bool
+     */
+    public function builtCheckToken($value, $rule = '')
+    {
+        $rule = intval($rule);
+        if ($rule <= 0) {
+            $rule = 7200;
+        }
+        $tokenData = intval(Crypto::decryptAES($value, md5(Container::getInstance()->config->get('web_secret_key') . Container::getInstance()->session->getid())));
+        if ($tokenData > time() - $rule) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -703,7 +761,17 @@ class Validate
         return '';
     }
 
-    //---以下转换用--------------------------------------------------
+    //---以下获取或转换用--------------------------------------------------
+
+    /**
+     * 生成校验字符
+     * @param string $value 操作
+     * @return string
+     */
+    public function convCheckToken()
+    {
+        return Crypto::encryptAES(microtime(true), md5(Container::getInstance()->config->get('web_secret_key') . Container::getInstance()->session->getid()));
+    }
 
     /**
      * 转换 bool
@@ -913,7 +981,7 @@ class Validate
 
         foreach ($rule['setting'] as $type => $val) {
             if ($val instanceof Closure) {
-                $result = call_user_func_array($val, [$value, $data]);
+                $result = call_user_func_array($val, [$value, '', $data, $rule['param']]);
                 if (is_string($result) && $result != '') {
                     $this->message([$rule['param'] => $result]);
                 }
@@ -924,7 +992,7 @@ class Validate
                 $result = true;
                 if (!empty($curTypeRule[0])) {
                     if ($curTypeRule[0] instanceof Closure) {
-                        $result = call_user_func_array($curTypeRule[0], [$value, $data]);
+                        $result = call_user_func_array($curTypeRule[0], [$value, $val, $data, $rule['param']]);
                     } elseif ($curTypeRule[0][0] == '/') {
                         $result = call_user_func_array([$this, 'builtRegex'], [$value, $curTypeRule[0]]);
                     } elseif ($curTypeRule[0][0] == '\\') {

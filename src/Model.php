@@ -81,9 +81,9 @@ class Model
     /**
      * 构造函数
      */
-    public function __construct()
+    public function __construct($table = null)
     {
-        $this->setTable();
+        $this->setTable($table);
         $this->init();
         $this->setConfig();
     }
@@ -134,6 +134,24 @@ class Model
     public function getPK()
     {
         return $this->config['pk'];
+    }
+
+    /**
+     * 获取默认值
+     * @param bool $format 是否格式化
+     * @return array
+     */
+    public function getDefault(bool $format = false)
+    {
+        $return = [];
+        $fieldArray = $this->getTableInfo();
+        foreach ($fieldArray['original'] as $key => $value) {
+            $return[$key] = $value['default'];
+        }
+        if ($format) {
+            return $this->formatData($return);
+        }
+        return $return;
     }
 
     /**
@@ -455,7 +473,7 @@ class Model
                 if ((isset($value[2]) && $value[2]) || (isset($value[1]) && $value[1] == 'pk')) {
                     $config['notedit'][] = $key;
                 }
-                if ((isset($value[3]) && $value[3]) || (isset($value[1]) && $value[1] == 'pk')) {
+                if ((isset($value[3]) && $value[3])) {
                     $config['list'][] = $key;
                 }
             }

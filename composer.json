@@ -20,6 +20,9 @@
     "autoload": {
         "psr-4": {
             "lfly\\": "src/"
-        }
+        },
+        "files": [
+            "src/init.php"
+        ]
     }
 }

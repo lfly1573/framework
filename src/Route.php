@@ -68,6 +68,12 @@ class Route
     private $attributes = [];
 
     /**
+     * 额外规则
+     * @var array
+     */
+    private $otherRules = [];
+
+    /**
      * @var App
      */
     protected $app;
@@ -370,13 +376,13 @@ class Route
             $curRule = $this->rules[$value];
             $matchNum = preg_match_all($curRule['preg'], $path, $matches);
             if ($matchNum) {
-                if (!empty($curRule['attr']['https']) && strtolower($scheme) != 'https') {
+                if (!empty($curRule['attr']['https']) && strtolower($scheme) != 'https' && !$this->app->isDebug()) {
                     continue;
                 }
                 if (!empty($curRule['attr']['ext']) && !in_array($ext, (array)$curRule['attr']['ext'])) {
                     continue;
                 }
-                if (!empty($curRule['attr']['domain']) && $domain != $curRule['attr']['domain']) {
+                if (!empty($curRule['attr']['domain']) && $domain != $curRule['attr']['domain'] && !$this->app->isDebug()) {
                     continue;
                 }
 
@@ -568,6 +574,9 @@ class Route
             }
             Cache::writeFile($cacheFile, ['ruleid' => $this->ruleid, 'rules' => $this->rules, 'indexes' => $this->indexes]);
         }
+        foreach ($this->otherRules as $value) {
+            call_user_func($value);
+        }
     }
 
     /**
@@ -586,6 +595,16 @@ class Route
         unset($groupObj);
         $callback();
         array_pop($this->groupStack);
+    }
+
+    /**
+     * 添加额外路由
+     * @param Closure $func 闭包函数
+     * @return void
+     */
+    public function extendRule(Closure $func)
+    {
+        $this->otherRules[] = $func;
     }
 
     /**

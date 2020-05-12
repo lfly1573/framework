@@ -232,8 +232,10 @@ class File
     {
         $curEngineConfig = $this->diskConfig['engine'][$this->tempEngine];
         $saveFile = $curEngineConfig['root'] . $toFile;
-        if (!is_dir(dirname($saveFile))) {
-            mkdir(dirname($saveFile), 0777, true);
+        $savePath = dirname($saveFile);
+        if (!is_dir($savePath)) {
+            mkdir($savePath, 0777, true);
+            @touch($savePath . DS . 'index.html');
         }
 
         $fileSaved = false;

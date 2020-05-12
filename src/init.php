@@ -66,7 +66,3 @@ spl_autoload_register(function ($className) {
     }
     return false;
 }, false, true);
-
-$app = new \lfly\App();
-
-return $app;

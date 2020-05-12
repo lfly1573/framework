@@ -7,6 +7,8 @@
 namespace lfly;
 
 use InvalidArgumentException;
+use ReflectionFunction;
+use Closure;
 
 class Cache
 {
@@ -301,8 +303,14 @@ class Cache
                     $val = $val ? 1 : 0;
                 } elseif (is_null($val)) {
                     $val = '\'\'';
-                } elseif (!is_numeric($val)) {
-                    $val = '\'' . addcslashes(strval($val), '\'') . '\'';
+                } elseif (is_scalar($val)) {
+                    if (!is_numeric($val)) {
+                        $val = '\'' . addcslashes(strval($val), '\'') . '\'';
+                    }
+                } elseif ($val instanceof Closure) {
+                    $val = self::getCacheClosureFormat($val);
+                } else {
+                    $val = '\'\'';
                 }
                 $evaluate .= "{$comma}{$key} => $val";
             }
@@ -310,5 +318,21 @@ class Cache
         }
         $evaluate .= PHP_EOL . $space . ']';
         return $evaluate;
+    }
+
+    /**
+     * php闭包格式化
+     */
+    public static function getCacheClosureFormat($func)
+    {
+        $reflect = new ReflectionFunction($func);
+        $start = $reflect->getStartLine() - 1;
+        $end = $reflect->getEndLine() - 1;
+        $filename = $reflect->getFileName();
+        $code = implode('', array_slice(file($filename), $start, $end - $start + 1));
+        if (preg_match('/^.*?(function\s*\(.+\}).*$/is', $code, $match)) {
+            return $match[1];
+        }
+        return '\'\'';
     }
 }

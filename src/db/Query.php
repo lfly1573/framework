@@ -240,7 +240,7 @@ class Query
             $this->options['where'][] = [$condition[0] => [$condition[1], $condition[2]]];
         } elseif (isset($condition[1])) {
             $this->options['where'][] = [$condition[0] => $condition[1]];
-        } elseif (isset($condition[0])) {
+        } elseif (!empty($condition[0])) {
             $this->options['where'][] = $condition[0];
         }
         return $this;

@@ -394,12 +394,12 @@ abstract class PDOConnection implements ConnectionHandlerInterface
 
     /**
      * 获取PDO对象
-     * @return PDO|false
+     * @return PDO
      */
     public function getPDO()
     {
         if (is_null($this->curLinkNum)) {
-            return false;
+            return $this->initConnect();
         }
         return $this->links[$this->curLinkNum];
     }
@@ -421,8 +421,8 @@ abstract class PDOConnection implements ConnectionHandlerInterface
         $bindParam = !empty($query->getOptions('pointer')) ? true : in_array(strtolower(substr(trim($sql), 0, 4)), ['call', 'exec']);
 
         $this->getPDOStatement($sql, $bind, $master, $bindParam);
+        $result = [];
         if ($bindParam) {
-            $result = [];
             do {
                 $item = $this->PDOData['PDOStatement']->fetchAll($this->fetchType);
                 if (!empty($item)) {
@@ -493,7 +493,7 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function count($query, $field = '*')
     {
         $query->limit(1);
-        $query->whereRaw('COUNT(' . $field . ') AS lfly_count');
+        $query->fieldRaw('COUNT(' . $field . ') AS lfly_count');
         $result = $this->query($query);
         return $result[0] ? intval($result[0]['lfly_count']) : 0;
     }
@@ -507,7 +507,7 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function max($query, $field)
     {
         $query->limit(1);
-        $query->whereRaw('MAX(' . $field . ') AS lfly_max');
+        $query->fieldRaw('MAX(' . $field . ') AS lfly_max');
         $result = $this->query($query);
         return $result[0] ? $result[0]['lfly_max'] : null;
     }
@@ -521,7 +521,7 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function min($query, $field)
     {
         $query->limit(1);
-        $query->whereRaw('MIN(' . $field . ') AS lfly_min');
+        $query->fieldRaw('MIN(' . $field . ') AS lfly_min');
         $result = $this->query($query);
         return $result[0] ? $result[0]['lfly_min'] : null;
     }
@@ -535,7 +535,7 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function avg($query, $field)
     {
         $query->limit(1);
-        $query->whereRaw('AVG(' . $field . ') AS lfly_avg');
+        $query->fieldRaw('AVG(' . $field . ') AS lfly_avg');
         $result = $this->query($query);
         return $result[0] ? $result[0]['lfly_avg'] : null;
     }
@@ -549,7 +549,7 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function sum($query, $field)
     {
         $query->limit(1);
-        $query->whereRaw('SUM(' . $field . ') AS lfly_sum');
+        $query->fieldRaw('SUM(' . $field . ') AS lfly_sum');
         $result = $this->query($query);
         return $result[0] ? $result[0]['lfly_sum'] : null;
     }

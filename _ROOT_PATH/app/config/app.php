@@ -15,6 +15,8 @@ return [
     'web_root' => '',
     //当前主域名用于url生成，完整格式如http://lfly.cn:80，默认端口80可不设定
     'web_domain' => '',
+    //全局加密密钥
+    'web_secret_key' => '',
     //前端代理ip地址数组，用于获取真实ip
     'proxy_server_ip' => [],
     //默认时区

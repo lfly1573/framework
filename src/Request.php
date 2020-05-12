@@ -240,6 +240,12 @@ class Request
     protected $filter;
 
     /**
+     * 请求token变量
+     * @var array
+     */
+    protected $submitTokenVar = ['name' => 'submitToken', 'pre' => 'st_'];
+
+    /**
      * @var App
      */
     protected $app;
@@ -808,11 +814,124 @@ class Request
 
     /**
      * 来自地址 HTTP_REFERER
+     * @param bool $checkSelf 判断是否来自本站根域名的地址
      * @return string
      */
-    public function comeUrl()
+    public function comeUrl(bool $checkSelf = false)
     {
-        return $this->server('HTTP_REFERER');
+        $url = $this->server('HTTP_REFERER');
+        if ($checkSelf && (empty($url) || substr($url, 0 - strlen($this->rootDomain())) != $this->rootDomain())) {
+            return '';
+        }
+        return $url;
+    }
+
+    /**
+     * 生成请求令牌
+     * @param int    $type 获取类型 0:直接获取 1:获取整个同名input 2:获取meta 3:获取js运算表达式
+     * @param string $name 令牌名称
+     * @return string
+     */
+    public function buildToken($type = 0, $name = null)
+    {
+        if (empty($name)) {
+            $name = $this->submitTokenVar['name'];
+        }
+        $token = substr(md5($this->server('REQUEST_TIME_FLOAT') . $this->server('HTTP_USER_AGENT')), 0, rand(20, 32));
+        $this->app->cookie->set($this->submitTokenVar['pre'] . $name, md5($name . '*LFLY#' . $token), 0, true);
+        if ($type == 0) {
+            return $token;
+        } elseif ($type == 1) {
+            return '<input type="hidden" name="' . $name . '" id="token_' . $name . '" value="' . $token . '" />';
+        } elseif ($type == 2) {
+            return '<meta name="csrf-token" content="' . $token . '" />';
+        } elseif ($type == 3) {
+            if (rand(0, 1)) {
+                $randStr = substr(md5($token), 0, rand(3, 18));
+                return "'" . $randStr . $token . "'.substr(" . strlen($randStr) . ")";
+            } else {
+                $randPos = rand(3, 18);
+                return "'" . substr($token, 0, $randPos) . "'+'" . substr($token, $randPos) . "'";
+            }
+        }
+        return $token;
+    }
+
+    /**
+     * 检查请求令牌
+     * @param string $value 当前令牌值
+     * @param bool   $isDel 校验后是否删除
+     * @param string $name  令牌名称
+     * @return string
+     */
+    public function checkToken($value = null, bool $isDel = false, $name = null)
+    {
+        if (empty($name)) {
+            $name = $this->submitTokenVar['name'];
+        }
+
+        //默认GET没有忽略！
+        if (in_array($this->method(), ['HEAD', 'OPTIONS'], true)) {
+            return true;
+        }
+
+        $setValue = $this->app->cookie->get($this->submitTokenVar['pre'] . $name, '');
+        if (empty($setValue)) {
+            return false;
+        }
+
+        if ($isDel) {
+            $this->deleteToken($name);
+        }
+
+        if (empty($value)) {
+            $value = $this->header('X-CSRF-TOKEN');
+            if (empty($value)) {
+                $value = $this->param($name);
+            }
+        }
+        if (!empty($value) && $setValue == md5($name . '*LFLY#' . $value)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 删除请求令牌
+     * @param string $name 令牌名称
+     * @return void
+     */
+    public function deleteToken($name = null)
+    {
+        if (empty($name)) {
+            $name = $this->submitTokenVar['name'];
+        }
+        $this->app->cookie->delete($this->submitTokenVar['pre'] . $name);
+    }
+
+    /**
+     * 生成随机字符
+     * @param int $length 长度
+     * @param int $type 类型 0:数字字母 5:验证码字符 10:纯数字 16:仅16进制字符
+     * @return string
+     */
+    public function random(int $length, int $type = 0)
+    {
+        $chars = $hash = '';
+        if ($type == 16) {
+            $chars = 'ABCDEF0123456789';
+        } elseif ($type == 10) {
+            $chars = '0123456789';
+        } elseif ($type == 5) {
+            $chars = 'jpyacemnrsuvwxzbdfhktABCDEFGHJKLMNPQRSTUVWXYZ2345678';
+        } else {
+            $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz';
+        }
+        $max = strlen($chars) - 1;
+        for ($i = 0; $i < $length; $i++) {
+            $hash .= $chars[mt_rand(0, $max)];
+        }
+        return $hash;
     }
 
     /**
@@ -1330,6 +1449,7 @@ class Request
 
     /**
      * 设置代理IP地址
+     * @param array|string $ip 代理ip地址
      * @return string
      */
     public function setProxyServerIp($ip)
@@ -1424,9 +1544,7 @@ class Request
 
     /**
      * 将IP地址转换为二进制字符串
-     *
-     * @param string $ip
-     *
+     * @param string $ip ip地址
      * @return string
      */
     public function ip2bin(string $ip)
@@ -1552,7 +1670,7 @@ class Request
     /**
      * 设置POST数据
      * @param  array $post 数据
-     * @param  bool $all   是否全部替换
+     * @param  bool  $all  是否全部替换
      * @return $this
      */
     public function withPost(array $post, $all = false)
@@ -1564,7 +1682,7 @@ class Request
     /**
      * 设置SERVER数据
      * @param  array $server 数据
-     * @param  bool $all  是否全部替换
+     * @param  bool  $all    是否全部替换
      * @return $this
      */
     public function withServer(array $server, $all = false)
@@ -1576,7 +1694,7 @@ class Request
     /**
      * 设置HEADER数据
      * @param  array $header 数据
-     * @param  bool $all  是否全部替换
+     * @param  bool  $all    是否全部替换
      * @return $this
      */
     public function withHeader(array $header, $all = false)

@@ -144,6 +144,9 @@ class Template implements TemplateHandlerInterface
         $template = preg_replace("/\s*\{template\s+([a-z0-9_\/]+)\}[ \t]*/is", "<?php include \\View::getFile('\\1'); ?>", $template);
         $template = preg_replace("/\s*\{template\s+(\\\$[a-zA-Z0-9_\[\]\'\"\$\.\x7f-\xff]+)\}[ \t]*/is", "<?php include \\View::getFile(\\1); ?>", $template);
 
+        $template = preg_replace_callback("/\{!!\s*R\.([a-zA-Z0-9_]+(\(.*?\))?)\s*!!\}/", function ($matches) {
+            return '<?php echo \\Request::' . $matches[1] . (empty($matches[2]) ? '()' : '') . '; ?>';
+        }, $template);
         $template = preg_replace_callback("/\{R\.([a-zA-Z0-9_]+(\(.*?\))?)\}/", function ($matches) {
             return '<?php echo htmlspecialchars(\\Request::' . $matches[1] . (empty($matches[2]) ? '()' : '') . '); ?>';
         }, $template);
@@ -152,6 +155,9 @@ class Template implements TemplateHandlerInterface
         }, $template);
         $template = preg_replace_callback("/\{C\.([a-zA-Z0-9_\.]+)\}/", function ($matches) {
             return '<?php echo \\Config::get(\'' . $matches[1] . '\',\'\'); ?>';
+        }, $template);
+        $template = preg_replace_callback("/\{V\.([a-zA-Z0-9_]+(\(.*?\))?)\}/", function ($matches) {
+            return '<?php echo \\Validate::' . $matches[1] . (empty($matches[2]) ? '()' : '') . '; ?>';
         }, $template);
 
         $template = preg_replace_callback("/[\n\r\t]*\{eval\s+(.+?)\s*\}[\n\r\t]*/is", function ($matches) {

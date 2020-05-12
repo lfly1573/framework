@@ -1,11 +1,31 @@
 <?php
 
 /**
- * app容器
+ * App容器
  */
 
 namespace lfly;
 
+/**
+ * App容器
+ * @property Cache      $cache
+ * @property Config     $config
+ * @property Console    $console
+ * @property Cookie     $cookie
+ * @property Db         $db
+ * @property Event      $event
+ * @property Exception  $exception
+ * @property File       $file
+ * @property Http       $http
+ * @property Log        $log
+ * @property Middleware $middleware
+ * @property Request    $request
+ * @property Route      $route
+ * @property Service    $service
+ * @property Session    $session
+ * @property Validate   $validate
+ * @property View       $view
+ */
 class App extends Container
 {
     /**
@@ -126,7 +146,7 @@ class App extends Container
     public function parseClass($name, $layer = 'controller')
     {
         $name = str_replace(['/', '.'], '\\', $name);
-        if (false === strpos($name, '\\') || substr($name, 0, strlen($this->namespace) + 1) != $this->namespace . '\\') {
+        if (false === strpos($name, '\\') || ($name[0] != '\\' && substr($name, 0, strlen($this->namespace) + 1) != $this->namespace . '\\')) {
             return $this->namespace . '\\' . $layer . '\\' . $name;
         }
         return $name;

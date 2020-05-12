@@ -11,7 +11,7 @@ use lfly\Facade;
 class Route extends Facade
 {
     protected static $alwaysNewInstance = true;
-    protected static $specialMethod = ['dispatch', 'buildUrl', 'addRule', 'updateGroupStack', 'setDefault', 'loadFile'];
+    protected static $specialMethod = ['dispatch', 'buildUrl', 'addRule', 'updateGroupStack', 'extendRule', 'setDefault', 'loadFile'];
 
     protected static function getFacadeClass()
     {

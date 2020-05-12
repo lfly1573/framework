@@ -23,6 +23,12 @@ class Controller
     protected $request;
 
     /**
+     * 提示消息模版自定义
+     * @var string
+     */
+    protected $messageTpl;
+
+    /**
      * 控制器中间件定义
      */
     //protected $middleware = ['类名1', '类名2:参数', '类名3' => ['except' => ['方法3']], '类名4' => ['only' => ['方法4']]];
@@ -39,6 +45,39 @@ class Controller
     }
 
     /**
+     * 获取公共参数
+     * @return array
+     */
+    protected function getCommData()
+    {
+        $return = [];
+        $return['doit'] = $this->request->param('doit', 0);
+        $return['page'] = $this->request->param('page', 1);
+        $return['perNum'] = 20;
+        $return['check'] = $this->request->param('check');
+        $return['precheck'] = $this->request->param('precheck');
+        $return['gourl'] = $this->request->param('gourl', '');
+        return $return;
+    }
+
+    /**
+     * 提示信息
+     * @param string $url   跳转的地址或方法
+     * @param array  $param 方法需要的参数
+     * @return void
+     * 
+     * @throws HttpResponseException
+     */
+    protected function goUrl($url, $param = [])
+    {
+        if (!empty($param) || ($url[0] != '/' && $url[0] != '.' && substr($url, 0, 4) != 'http' && strpos($url, '@'))) {
+            $url = \Route::buildUrl($url, $param);
+        }
+        $response = $this->app->response->engine('redirect', 200)->init($url);
+        throw new HttpResponseException($response);
+    }
+
+    /**
      * 提示信息
      * @param  int    $code    状态码 0为正确，其他值为错误 100-600为http状态码使用
      * @param  mixed  $message 消息内容
@@ -49,8 +88,11 @@ class Controller
      * 
      * @throws HttpResponseException
      */
-    public function showMessage(int $code, $message = '', array $data = [], array $extra = [], $type = '')
+    protected function showMessage(int $code, $message = '', array $data = [], array $extra = [], $type = '')
     {
+        if (!empty($this->messageTpl) && !isset($extra['tpl'])) {
+            $extra['tpl'] = $this->messageTpl;
+        }
         $return = ['code' => $code, 'message' => $message, 'data' => $data, 'extra' => $extra];
         $pageCode = ($code >= 100 && $code <= 600) ? $code : 200;
         if ($type == 'json' || (empty($type) && ($this->request->isJson() || $this->request->isAjax() || $this->request->isPjax()))) {
@@ -79,9 +121,20 @@ class Controller
      * @param mixed $message 消息内容
      * @param array $data    详细数据
      */
-    public function json(int $code, $message, array $data = [])
+    protected function json(int $code, $message, array $data = [])
     {
         $this->showMessage($code, $message, $data, [], 'json');
+    }
+
+    /**
+     * 载入模型
+     * @param string $model 模型名
+     * @return object
+     */
+    protected function model($model)
+    {
+        $realClass = $this->app->parseClass($model, 'model');
+        return $this->app->invokeClass($realClass);
     }
 
     /**
@@ -95,14 +148,14 @@ class Controller
      * @param string $sign    链接地址中替换符号
      * @return array
      */
-    public function page(int $allNum, int $perNum, int $curPage, string $linkUrl = '', int $linkNum = 7, int $maxPage = 0, string $sign = '@@')
+    protected function page(int $allNum, int $perNum, int $curPage, string $linkUrl = '', int $linkNum = 7, int $maxPage = 0, string $sign = '__PAGE__')
     {
         $allNum = abs(intval($allNum));
         $perNum = max(1, intval($perNum));
         $curPage = max(1, intval($curPage));
         $linkNum = max(1, intval($linkNum));
         $maxPage = abs(intval($maxPage));
-        $return = array();
+        $return = [];
 
         if ($allNum > 0) {
             $allAbsPages = $allPages = $startPage = $endPage = 0;
@@ -163,7 +216,7 @@ class Controller
      * @param array  $param 参数
      * @return string|bool
      */
-    public function runPhp($file = '', $param = [])
+    protected function runPhp($file = '', $param = [])
     {
         static $realPath = '';
         if ($realPath == '') {
@@ -201,6 +254,34 @@ class Controller
         } else {
             return $realPath;
         }
+    }
+
+    /**
+     * 返回两个数组中前者中去掉后者一样的数据后的结果
+     * @param array $data     被搜索数组
+     * @param array $baseData 基准数组
+     * @return array
+     */
+    protected function searchDiff(array $data, array $baseData)
+    {
+        $return = [];
+        foreach ($data as $key => $value) {
+            if (!isset($baseData[$key])) {
+                $return[$key] = $value;
+            } elseif (is_array($value)) {
+                if (!is_array($baseData[$key]) || count($value) != count($baseData[$key])) {
+                    $return[$key] = $value;
+                } else {
+                    $subDiff = $this->searchDiff($value, $baseData[$key]);
+                    if (!empty($subDiff)) {
+                        $return[$key] = $value;
+                    }
+                }
+            } elseif ($value != $baseData[$key]) {
+                $return[$key] = $value;
+            }
+        }
+        return $return;
     }
 
     /**
