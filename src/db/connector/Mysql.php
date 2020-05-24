@@ -296,13 +296,14 @@ class Mysql extends PDOConnection
     {
         $return = '';
         $where = $query->getOptions('where', []);
+        $alias = $query->getOptions('alias', '');
         if (!empty($where)) {
-            $return = $this->parseQueryWhereSub($where, 'AND', true);
+            $return = $this->parseQueryWhereSub($where, 'AND', true, $alias);
         }
         return !empty($return) ? ' WHERE ' . $return : '';
     }
 
-    protected function parseQueryWhereSub($array, $type = 'AND', $top = false)
+    protected function parseQueryWhereSub($array, $type = 'AND', $top = false, $alias = '')
     {
         $sql = '';
         $tempArray = [];
@@ -312,18 +313,23 @@ class Mysql extends PDOConnection
                     if (is_string($value)) {
                         $tempArray[] = $value;
                     } else {
-                        $tempArray[] = $this->parseQueryWhereSub($value, $type);
+                        $tempArray[] = $this->parseQueryWhereSub($value, $type, false, $alias);
                     }
                 } else {
                     if (in_array($key, array('and', 'or'))) {
-                        $tempArray[] = $this->parseQueryWhereSub($value, strtoupper($key));
+                        $tempArray[] = $this->parseQueryWhereSub($value, strtoupper($key), false, $alias);
                     } else {
                         if (strpos($key, '|') > 0) {
-                            $tempArray[] = $this->parseQueryWhereSub(array_fill_keys(explode('|', $key), $value), 'OR');
+                            $tempArray[] = $this->parseQueryWhereSub(array_fill_keys(explode('|', $key), $value), 'OR', false, $alias);
                         } elseif (strpos($key, '&') > 0) {
-                            $tempArray[] = $this->parseQueryWhereSub(array_fill_keys(explode('&', $key), $value), 'AND');
+                            $tempArray[] = $this->parseQueryWhereSub(array_fill_keys(explode('&', $key), $value), 'AND', false, $alias);
                         } else {
                             $op = '=';
+                            if ($alias != '' && strpos($key, '.') === false) {
+                                $keyFormat = $alias . '.`' . $key . '`';
+                            } else {
+                                $keyFormat = '`' . $key . '`';
+                            }
                             if (is_array($value)) {
                                 if (isset($value[1])) {
                                     $op = $value[0];
@@ -335,20 +341,31 @@ class Mysql extends PDOConnection
                             if ($op == 'in') {
                                 if (is_array($value)) {
                                     $indata = [];
+                                    $instrdata = [];
                                     foreach ($value as $invalue) {
-                                        $indata[] = (is_int($invalue) || is_float($invalue)) ? $invalue : $this->getPDO()->quote($invalue);
+                                        if (is_int($invalue) || is_float($invalue)) {
+                                            $indata[] = $invalue;
+                                        } else {
+                                            $instrdata[] = [$key => $invalue];
+                                        }
                                     }
-                                    $value = implode(',', $indata);
+                                    if (!empty($indata)) {
+                                        $value = implode(',', $indata);
+                                        $tempArray[] = "{$keyFormat} IN ({$value})";
+                                    } elseif (!empty($instrdata)) {
+                                        $tempArray[] = $this->parseQueryWhereSub($instrdata, 'OR', false, $alias);
+                                    }
+                                } else {
+                                    //非数组没有过滤，危险
+                                    $tempArray[] = "{$keyFormat} IN ({$value})";
                                 }
-                                //非数组没有过滤，危险
-                                $tempArray[] = "`{$key}` IN ({$value})";
                             } elseif ($op == 'likeand' || $op == 'likeor') {
                                 $likevalue = explode(' ', $value);
                                 $likearray = [];
                                 foreach ($likevalue as $linkone) {
                                     $linkone = trim($linkone);
                                     if ($linkone != '') {
-                                        $likearray[] = "`{$key}` LIKE " . $this->getPDO()->quote("%{$linkone}%");
+                                        $likearray[] = "{$keyFormat} LIKE " . $this->getPDO()->quote("%{$linkone}%");
                                     }
                                 }
                                 $likestr = implode(' ' . strtoupper(substr($op, 4)) . ' ', $likearray);
@@ -358,12 +375,12 @@ class Mysql extends PDOConnection
                                 $tempArray[] = $likestr;
                             } elseif ($op == 'exp') {
                                 //原样放入，危险
-                                $tempArray[] = "`{$key}` {$value}";
+                                $tempArray[] = "{$keyFormat} {$value}";
                             } else {
                                 if (!(is_int($value) || is_float($value) || $value[0] == ':')) {
                                     $value = $this->getPDO()->quote($value);
                                 }
-                                $tempArray[] = "`{$key}` {$op} {$value}";
+                                $tempArray[] = "{$keyFormat} {$op} {$value}";
                             }
                         }
                     }

@@ -49,7 +49,9 @@ class File
     protected $type = [
         'image' => ['jpg', 'jpeg', 'png', 'gif', 'bmp'],
         'music' => ['mp3', 'wma', 'ape', 'wav', 'flac'],
+        'audio' => ['mp3', 'wma', 'ape', 'wav', 'flac'],
         'video' => ['mp4', 'avi', 'wmv', 'rm', 'rmvb', 'mkv', 'mov'],
+        'file' => ['doc', 'docx', 'pages', 'ppt', 'pptx', 'xls', 'xlsx', 'pdf', 'psd', 'txt', 'zip', 'rar', 'gz', 'gz2', 'apk', 'html'],
     ];
 
     /**
@@ -103,7 +105,7 @@ class File
     }
 
     /**
-     * 获取引擎
+     * 初始化引擎
      * @param string $engine 文件类型
      * @return FileHandlerInterface
      * 
@@ -111,13 +113,13 @@ class File
      */
     public function engine($engine)
     {
+        $this->tempEngine = $engine;
         $curEngineConfig = $this->diskConfig['engine'][$engine];
         if (empty($curEngineConfig)) {
             throw new InvalidArgumentException('file engine error: ' . $engine);
         }
         if ($curEngineConfig['type'] == 'local') {
             $fileObj = $this;
-            $this->tempEngine = $engine;
         } else {
             if (empty($curEngineConfig['class'])) {
                 throw new InvalidArgumentException('file engine error: ' . $engine);
@@ -126,6 +128,15 @@ class File
             $fileObj->init($curEngineConfig);
         }
         return $fileObj;
+    }
+
+    /**
+     * 获取临时引擎
+     * @return string
+     */
+    public function getEngine()
+    {
+        return $this->tempEngine;
     }
 
     /**
@@ -218,7 +229,7 @@ class File
                 $returnArray[] = $tempFileinfo;
             }
         }
-        $this->fileList = $returnarray;
+        $this->fileList = $returnArray;
         return $this->fileList;
     }
 
@@ -226,7 +237,7 @@ class File
      * 本地保存文件
      * @param  array $fromFile 原始文件
      * @param  array $toFile   新文件路径
-     * @return string
+     * @return string|array
      */
     public function putFile($fromFile, $toFile)
     {
@@ -299,7 +310,7 @@ class File
         for ($i = 0; $i < $length; $i++) {
             $hash .= $chars[mt_rand(0, $max)];
         }
-        return date('ymdHis') . $usec . $hash . '.' . $tempext;
+        return date('ymdHis') . substr($usec, 2) . $hash . '.' . $tempext;
     }
 
     /**

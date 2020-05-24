@@ -74,6 +74,12 @@ class Model
     protected $config;
 
     /**
+     * 设置是否软删除默认筛选
+     * @var bool
+     */
+    protected $softDeleted = true;
+
+    /**
      * 当前内置时间常量字段
      */
     const timeParam = array('createTime', 'updateTime', 'deleteTime');
@@ -100,6 +106,9 @@ class Model
         }
         if (!empty($this->config['deleteTime'])) {
             $query->deleteField($this->config['deleteTime']);
+            if ($this->softDeleted) {
+                $query->where($this->config['deleteTime'], 0);
+            }
         }
         $this->addQuery($query);
         return $query;
@@ -108,6 +117,7 @@ class Model
     /**
      * 设置表
      * @param string $table 表名
+     * @return $this
      */
     public function setTable($table = null)
     {
@@ -116,6 +126,18 @@ class Model
         } elseif (empty($this->table)) {
             $this->table = \Validate::convToSnake(basename(str_replace('\\', '/', static::class)));
         }
+        return $this;
+    }
+
+    /**
+     * 设置不自动剔除软删除
+     * @param bool $value 是否自动剔除
+     * @return $this
+     */
+    public function setNotSoftDeleted(bool $value = false)
+    {
+        $this->softDeleted = $value;
+        return $this;
     }
 
     /**
@@ -259,7 +281,7 @@ class Model
     {
         $return = [];
         foreach ($this->joinSet as $key => $value) {
-            $return[$value[0]] = "{$alias}.{$value[0]} AS " . $this->formatJoinField($value[0]);
+            $return[$value[0]] = "{$alias}.{$value[0]} AS {$key}";
         }
         return !empty($return) ? implode(', ', $return) : '';
     }
@@ -271,22 +293,17 @@ class Model
      */
     public function formatJoinData($data)
     {
-        $return = [];
+        $return = $data;
         if (!empty($this->joinSet)) {
             foreach ($this->joinSet as $key => $value) {
-                $curkey = $this->formatJoinField($value[0]);
-                if (isset($data[$curkey])) {
+                if (isset($data[$key]) || is_null($data[$key])) {
                     if (isset($value[1])) {
-                        $return[$key] = $this->formatByRule($data[$curkey], $value[1], $data);
-                    } else {
-                        $return[$key] = $data[$curkey];
+                        $return[$key] = $this->formatByRule($data[$key], $value[1], $data);
+                    }
+                    if (in_array($value[0], $this->config['json']) && !is_array($return[$key])) {
+                        $return[$key] = @json_decode($return[$key], true);
                     }
                 }
-            }
-        }
-        foreach ($this->config['json'] as $key) {
-            if (isset($return[$key]) && !is_array($return[$key])) {
-                $return[$key] = @json_decode($return[$key], true);
             }
         }
         return $return;
@@ -300,6 +317,16 @@ class Model
     public function formatReturn($data)
     {
         return $data;
+    }
+
+    /**
+     * 继承实现：查询数据前执行
+     * @param mixed $query 当前执行query
+     * @return array|bool 返回数组将不再数据库查询
+     */
+    public function onBeforeSelect($query)
+    {
+        return true;
     }
 
     /**
@@ -407,22 +434,12 @@ class Model
     }
 
     /**
-     * 格式化关联字段
-     * @param string $field 字段
-     * @return string
-     */
-    protected function formatJoinField($field)
-    {
-        return $this->getTable() . '_' . $field;
-    }
-
-    /**
      * 获取表信息
      */
     protected function getTableInfo()
     {
         $db = $this->db();
-        $cacheFile = CACHE_PATH . $db->getConnectSign() . '/' . $db->getOptions('table') . EXT;
+        $cacheFile = CACHE_PATH . $db->getDbSign() . '/' . $db->getOptions('table') . EXT;
         $cacheTime = is_file($cacheFile) ? filemtime($cacheFile) : 0;
         $refreshTime = $db->getChangeFieldTime();
         if ($cacheTime > 0 && $cacheTime >= $refreshTime) {

@@ -201,6 +201,18 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     }
 
     /**
+     * 获取当前数据库的标识
+     * @return string
+     */
+    public function getDbSign()
+    {
+        if (!empty($this->getConfig('sign'))) {
+            return 'db_' . $this->getConfig('sign');
+        }
+        return 'db_' . $this->getConfig('database');
+    }
+
+    /**
      * 设置当前的数据库Db对象
      * @param Db $db
      * @return void
@@ -208,6 +220,15 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function setDb($db)
     {
         $this->db = $db;
+    }
+
+    /**
+     * 获取当前的数据库Db对象
+     * @return Db
+     */
+    public function getDb()
+    {
+        return $this->db;
     }
 
     /**
@@ -562,7 +583,14 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function find($query)
     {
         $query->limit(1);
-        $result = $this->query($query);
+        $status = $this->triggerModelEvent('onBeforeSelect', $query);
+        if (is_array($status)) {
+            $result = $status;
+        } elseif (is_bool($status) && !$status) {
+            $result = [];
+        } else {
+            $result = $this->query($query);
+        }
         return $result[0] ?? [];
     }
 
@@ -574,13 +602,26 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     public function select($query)
     {
         $model = $query->getOptions('model');
-        if (!empty($model) && method_exists($model, 'getListField')) {
+        $field = $query->getOptions('field');
+        if ((empty($field) || $field[0] == '*') && !empty($model) && method_exists($model, 'getListField')) {
             $listField = $model->getListField();
             if (!empty($listField)) {
-                $query->field($listField);
+                if (!empty($field) && $field[0] == '*') {
+                    $field[0] = $listField;
+                    $query->setOption('field', $field);
+                } else {
+                    $query->field($listField);
+                }
             }
         }
-        $result = $this->query($query);
+        $status = $this->triggerModelEvent('onBeforeSelect', $query);
+        if (is_array($status)) {
+            $result = $status;
+        } elseif (is_bool($status) && !$status) {
+            $result = [];
+        } else {
+            $result = $this->query($query);
+        }
         return $result;
     }
 
@@ -961,7 +1002,7 @@ abstract class PDOConnection implements ConnectionHandlerInterface
      */
     protected function getChangeFieldKey()
     {
-        return 'db_' . $this->getConnectSign() . '_field_time';
+        return $this->getDbSign() . '_field_time';
     }
 
     /**

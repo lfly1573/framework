@@ -774,6 +774,27 @@ class Validate
     }
 
     /**
+     * 转换图片地址
+     * @param string $value 图片地址
+     * @return string
+     */
+    public function convImageUrl($value, $default = '')
+    {
+        if (substr($value, 0, 4) == 'http') {
+            return $value;
+        }
+
+        $upfileUrl = Container::getInstance()->request->upfileUrl();
+        if (!empty($value)) {
+            return $upfileUrl . $value;
+        } elseif (!empty($default)) {
+            return $upfileUrl . $default;
+        } else {
+            return '';
+        }
+    }
+
+    /**
      * 转换 bool
      * @param mixed $value 字段值
      * @return int

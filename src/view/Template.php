@@ -153,6 +153,9 @@ class Template implements TemplateHandlerInterface
         $template = preg_replace_callback("/\{U(\(.+?\))\}/", function ($matches) {
             return '<?php echo \\Route::buildUrl' . $matches[1] . '; ?>';
         }, $template);
+        $template = preg_replace_callback("/\{M\(([a-zA-Z0-9_\'\\\"\\\\]+)\)(\-\>.+?)\s*\}/", function ($matches) {
+            return '<?php $modelData = \\App::invokeClass(\\App::parseClass(' . $matches[1] . ', \'model\'))' . $matches[2] . '; ?>';
+        }, $template);
         $template = preg_replace_callback("/\{C\.([a-zA-Z0-9_\.]+)\}/", function ($matches) {
             return '<?php echo \\Config::get(\'' . $matches[1] . '\',\'\'); ?>';
         }, $template);
@@ -169,7 +172,7 @@ class Template implements TemplateHandlerInterface
         $template = preg_replace_callback("/[\n\r\t]*\{literal\}(.+?)\{\/literal\}[\n\r\t]*/is", function ($matches) {
             return $this->stripvTags($matches[1], '');
         }, $template);
-        $template = preg_replace_callback("/[\n\r\t]*\{echo\s+(.+?)\}[\n\r\t]*/is", function ($matches) {
+        $template = preg_replace_callback("/[\n\r\t]*\{echo\s+(.+?);?\s*\}[\n\r\t]*/is", function ($matches) {
             return $this->stripvTags('<?php echo ' . $matches[1] . '; ?>', '');
         }, $template);
         $template = preg_replace_callback("/([\n\r\t]*)\{elseif\s+(.+?)\}([\n\r\t]*)/is", function ($matches) {

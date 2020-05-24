@@ -51,8 +51,8 @@ class Controller
     protected function getCommData()
     {
         $return = [];
-        $return['doit'] = $this->request->param('doit', 0);
-        $return['page'] = $this->request->param('page', 1);
+        $return['doit'] = $this->request->param('doit/d', 0);
+        $return['page'] = max(1, $this->request->param('page/d', 1));
         $return['perNum'] = 20;
         $return['check'] = $this->request->param('check');
         $return['precheck'] = $this->request->param('precheck');

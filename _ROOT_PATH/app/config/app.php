@@ -15,6 +15,8 @@ return [
     'web_root' => '',
     //当前主域名用于url生成，完整格式如http://lfly.cn:80，默认端口80可不设定
     'web_domain' => '',
+    //设置当前public目录上传的附件使用的完整域名地址，结尾有斜线（用于编辑器插入或接口返回完整地址）
+    'web_upfile_url' => '',
     //全局加密密钥
     'web_secret_key' => '',
     //前端代理ip地址数组，用于获取真实ip
@@ -62,7 +64,7 @@ return [
                 //默认文件保存目录，最后有斜线
                 'root' => WEB_PATH . 'upfiles' . DS,
                 //对应的url路径，最后有斜线
-                'url' => '/upfiles\/',
+                'url' => 'upfiles/',
             ],
         ],
     ],

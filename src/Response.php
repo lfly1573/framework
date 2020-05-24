@@ -195,6 +195,9 @@ class Response
      */
     public function setData($data)
     {
+        if (is_array($data) && $this->app->isDebug()) {
+            $data['_debug_system_info'] = $this->app->exception->debug();
+        }
         $this->data = $data;
         return $this;
     }

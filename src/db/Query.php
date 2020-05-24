@@ -220,9 +220,12 @@ class Query
      */
     public function joinModel($model, $alias, $condition, $type = 'INNER')
     {
-        $modelObject = $db->invokeModel($model);
+        $modelObject = $this->connection->getDb()->invokeModel($model);
         $field = $modelObject->getJoinField($alias);
         if (!empty($field)) {
+            if (empty($this->getOptions('field'))) {
+                $this->field('*');
+            }
             $this->fieldRaw($field);
         }
         $this->options['joinModel'][] = ['model' => $modelObject, 'table' => $modelObject->getTable(), 'alias' => $alias, 'condition' => (array)$condition, 'type' => $type];

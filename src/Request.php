@@ -119,6 +119,12 @@ class Request
     protected $root;
 
     /**
+     * 附件完整url路径
+     * @var string
+     */
+    protected $upfileUrl;
+
+    /**
      * pathinfo
      * @var string
      */
@@ -546,6 +552,26 @@ class Request
     }
 
     /**
+     * 获取附件完整域名地址
+     * @return string
+     */
+    public function upfileUrl()
+    {
+        if (empty($this->upfileUrl)) {
+            $upfileUrl = $this->app->config->get('web_upfile_url', '');
+            if (empty($upfileUrl)) {
+                if ($this->mainDomain() != '') {
+                    $upfileUrl = $this->pre();
+                } else {
+                    $upfileUrl = $this->root(true);
+                }
+            }
+            $this->upfileUrl = $upfileUrl;
+        }
+        return $this->upfileUrl;
+    }
+
+    /**
      * 获取当前兼容请求的参数变量
      * @return string
      */
@@ -605,6 +631,9 @@ class Request
             $pathinfo = str_replace('index' . EXT, '', $pathinfo);
             $this->pathinfo = empty($pathinfo) || '/' == $pathinfo ? '' : ltrim($pathinfo, '/');
             $this->path = preg_replace('/\.[a-zA-Z0-9]+$/', '', $this->pathinfo);
+            if ($this->path != '' && $this->root() != '' && substr($this->path, 0, strlen($this->root()) - 1) == ltrim($this->root(), '/')) {
+                $this->path = substr($this->path, strlen($this->root()) - 1);
+            }
         }
 
         return $this->pathinfo;
@@ -1860,6 +1889,10 @@ class Request
             // 布尔
             case 'b':
                 $data = (boolean)$data;
+                break;
+            // html格式化
+            case 'h':
+                $data = is_scalar($data) ? htmlspecialchars(trim((string)$data), ENT_QUOTES) : '';
                 break;
             // 字符串
             case 's':

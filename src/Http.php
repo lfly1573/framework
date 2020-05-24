@@ -111,7 +111,11 @@ class Http
             }
             $data = $this->app->invokeFunction($routeData['callback'], $routeData['args']);
         } elseif (!empty($routeData['controller']) && !empty($routeData['action'])) {
+            $template = $this->app->stripClass($routeData['controller']) . '/' . $routeData['action'];
             if (!class_exists($routeData['controller'])) {
+                if ($this->app->view->engine()->exists($template)) {
+                    return $this->app->response->init('')->setTemplate($template);
+                }
                 if (!$this->app->isDebug()) {
                     return $this->app->response->init('', 404)->setTemplate('404');
                 }
@@ -123,8 +127,11 @@ class Http
             $this->registerControllerMiddleware($instance, $action);
             $data = $this->app->middleware->pipeline('controller')
                 ->send($this->app->request)
-                ->then(function () use ($instance, $action, $vars) {
+                ->then(function () use ($template, $instance, $action, $vars) {
                     if ($action[0] == '_' || !is_callable([$instance, $action])) {
+                        if ($this->app->view->engine()->exists($template)) {
+                            return $this->app->response->init('')->setTemplate($template);
+                        }
                         if (!$this->app->isDebug()) {
                             return $this->app->response->init('', 404)->setTemplate('404');
                         }
