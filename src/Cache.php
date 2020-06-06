@@ -133,23 +133,44 @@ class Cache
 
     /**
      * 追加一个缓存数据
-     * @param  string $key   名称
-     * @param  mixed  $value 值
+     * @param  string $key      名称
+     * @param  mixed  $value    值
+     * @param  string $paramKey 值下标
      * @return bool
      */
-    public function push($key, $value)
+    public function push($key, $value, $paramKey = '', $ttl = null)
     {
         $item = $this->get($key, []);
         if (!is_array($item)) {
             return false;
         }
-        $item[] = $value;
+        if ($paramKey != '') {
+            if (is_null($value)) {
+                unset($item[$paramKey]);
+            } else {
+                $item[$paramKey] = $value;
+            }
+        } else {
+            $item[] = $value;
+            $item = array_unique($item);
+        }
         if (count($item) > 1000) {
             array_shift($item);
         }
-        $item = array_unique($item);
-        $this->set($key, $item);
+        $this->set($key, $item, $ttl);
         return true;
+    }
+
+    /**
+     * 获取缓存数组中单个数据
+     * @param  string $key      名称
+     * @param  string $paramKey 值下标
+     * @return bool
+     */
+    public function getItem($key, $paramKey, $default = null)
+    {
+        $item = $this->get($key, []);
+        return (is_array($item) && isset($item[$paramKey])) ? $item[$paramKey] : $default;
     }
 
     /**

@@ -16,7 +16,7 @@ class Crypto
      */
     public static function decryptAES($data, $key)
     {
-        return openssl_decrypt(hex2bin($data), 'aes-256-ecb', strtoupper(md5($key)), 1);
+        return openssl_decrypt(@hex2bin($data), 'aes-256-ecb', strtoupper(md5($key)), 1);
     }
 
     /**

@@ -186,7 +186,9 @@ class Model
     {
         $return = [];
         foreach ($data as $key => $value) {
-            if (isset($this->inSet[$key])) {
+            if (is_array($value)) {
+                $return[$key] = $value;
+            } elseif (isset($this->inSet[$key])) {
                 $cur = $this->inSet[$key];
                 if (isset($cur[1])) {
                     $return[$cur[0]] = $this->formatByRule($value, $cur[1], $data);
@@ -244,7 +246,7 @@ class Model
             foreach ($this->outSet as $key => $value) {
                 if (isset($return[$value[0]])) {
                     if (isset($value[1])) {
-                        $return[$key] = $this->formatByRule($return[$value[0]], $value[1], $data);
+                        $return[$key] = $this->formatByRule($return[$value[0]], $value[1], $data, $value[0]);
                     } elseif ($key != $value[0]) {
                         $return[$key] = $return[$value[0]];
                     }
@@ -298,7 +300,7 @@ class Model
             foreach ($this->joinSet as $key => $value) {
                 if (isset($data[$key]) || is_null($data[$key])) {
                     if (isset($value[1])) {
-                        $return[$key] = $this->formatByRule($data[$key], $value[1], $data);
+                        $return[$key] = $this->formatByRule($data[$key], $value[1], $data, $value[0]);
                     }
                     if (in_array($value[0], $this->config['json']) && !is_array($return[$key])) {
                         $return[$key] = @json_decode($return[$key], true);
@@ -307,6 +309,38 @@ class Model
             }
         }
         return $return;
+    }
+
+    /**
+     * 格式化已定义属性字段
+     * @param int|string $value 当前数据
+     * @param array      $data  全部数据
+     * @param string     $field 当前字段名
+     * @return mixed
+     */
+    public function formatFieldByProperty($value, $data = [], $field = '')
+    {
+        if ($field != '') {
+            $param = 'field_' . $field;
+            if (property_exists($this, $param)) {
+                return $this->{$param}[$value] ?? '';
+            }
+        }
+        return '';
+    }
+
+    /**
+     * 获取已定义属性字段
+     * @param string $field 当前字段名
+     * @return array
+     */
+    public function getFieldByProperty($field)
+    {
+        $param = 'field_' . $field;
+        if (property_exists($this, $param)) {
+            return $this->{$param};
+        }
+        return [];
     }
 
     /**
@@ -402,16 +436,17 @@ class Model
     {
     }
 
-    //额外实现格式化方法 public function action($value, $data = [])
+    //额外实现格式化方法 public function action($value, $data = [], $field = '')
 
     /**
      * 格式化数据
      * @param mixed  $value 值
      * @param string $rule  规则
      * @param array  $data  全部数据
+     * @param string $field 当前字段名
      * @return mixed
      */
-    protected function formatByRule($value, $rule = '', $data = [])
+    protected function formatByRule($value, $rule = '', $data = [], $field = '')
     {
         if (!empty($rule)) {
             if ($rule == 'int') {
@@ -427,7 +462,7 @@ class Model
             } elseif ($rule[0] == '\\') {
                 $value = $rule($value);
             } elseif (method_exists($this, $rule)) {
-                $value = call_user_func_array([$this, $rule], [$value, $data]);
+                $value = call_user_func_array([$this, $rule], [$value, $data, $field]);
             }
         }
         return $value;

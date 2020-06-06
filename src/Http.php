@@ -137,7 +137,7 @@ class Http
                         }
                         throw new LogicException('method not exists: ' . get_class($instance) . '->' . $action . '()');
                     }
-                    return $this->app->invokeMethod([$instance, $action], $vars);
+                    return $this->autoResponse($this->app->invokeMethod([$instance, $action], $vars));
                 });
         } elseif (!empty($routeData['template'])) {
             return $this->app->response->setTemplate($routeData['template']);

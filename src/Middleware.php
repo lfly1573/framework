@@ -220,6 +220,9 @@ class Middleware
     {
         if (is_array($middleware)) {
             [$middleware, $params] = $middleware;
+            if (!is_array($params)) {
+                $params = (array)$params;
+            }
         }
 
         if ($middleware instanceof Closure) {

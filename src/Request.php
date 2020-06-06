@@ -143,6 +143,12 @@ class Request
     protected $realIP;
 
     /**
+     * 当前时间
+     * @var int
+     */
+    protected $curTime;
+
+    /**
      * 当前控制器名
      * @var string
      */
@@ -249,7 +255,7 @@ class Request
      * 请求token变量
      * @var array
      */
-    protected $submitTokenVar = ['name' => 'submitToken', 'pre' => 'st_'];
+    protected $submitTokenVar = ['name' => 'submitToken', 'pre' => 'st_', 'saveType' => 'cache'];
 
     /**
      * @var App
@@ -319,6 +325,18 @@ class Request
 
         $name = str_replace('_', '-', strtolower($name));
         return $this->header[$name] ?? $default;
+    }
+
+    /**
+     * 获取当前时间
+     * @return int
+     */
+    public function getTime()
+    {
+        if (empty($this->curTime)) {
+            $this->curTime = time();
+        }
+        return $this->curTime;
     }
 
     /**
@@ -867,7 +885,18 @@ class Request
             $name = $this->submitTokenVar['name'];
         }
         $token = substr(md5($this->server('REQUEST_TIME_FLOAT') . $this->server('HTTP_USER_AGENT')), 0, rand(20, 32));
-        $this->app->cookie->set($this->submitTokenVar['pre'] . $name, md5($name . '*LFLY#' . $token), 0, true);
+
+        if ($this->submitTokenVar['saveType'] == 'cache') {
+            $myCacheId = $this->app->cookie->get($this->submitTokenVar['pre'] . $this->submitTokenVar['name'], '');
+            if (empty($myCacheId)) {
+                $myCacheId = $this->app->uniqid();
+                $this->app->cookie->set($this->submitTokenVar['pre'] . $this->submitTokenVar['name'], $myCacheId, 0, true);
+            }
+            $this->app->cache->push($this->submitTokenVar['pre'] . $this->submitTokenVar['name'] . '_' . $myCacheId, md5($name . '*LFLY#' . $token), $name, 36000);
+        } else {
+            $this->app->cookie->set($this->submitTokenVar['pre'] . $name, md5($name . '*LFLY#' . $token), 0, true);
+        }
+
         if ($type == 0) {
             return $token;
         } elseif ($type == 1) {
@@ -904,7 +933,13 @@ class Request
             return true;
         }
 
-        $setValue = $this->app->cookie->get($this->submitTokenVar['pre'] . $name, '');
+        if ($this->submitTokenVar['saveType'] == 'cache') {
+            $myCacheId = $this->app->cookie->get($this->submitTokenVar['pre'] . $this->submitTokenVar['name'], '');
+            $setValue = !empty($myCacheId) ? $this->app->cache->getItem($this->submitTokenVar['pre'] . $this->submitTokenVar['name'] . '_' . $myCacheId, $name, '') : '';
+        } else {
+            $setValue = $this->app->cookie->get($this->submitTokenVar['pre'] . $name, '');
+        }
+
         if (empty($setValue)) {
             return false;
         }
@@ -935,7 +970,14 @@ class Request
         if (empty($name)) {
             $name = $this->submitTokenVar['name'];
         }
-        $this->app->cookie->delete($this->submitTokenVar['pre'] . $name);
+        if ($this->submitTokenVar['saveType'] == 'cache') {
+            $myCacheId = $this->app->cookie->get($this->submitTokenVar['pre'] . $this->submitTokenVar['name'], '');
+            if (!empty($myCacheId)) {
+                $this->app->cache->push($this->submitTokenVar['pre'] . $this->submitTokenVar['name'] . '_' . $myCacheId, null, $name, 36000);
+            }
+        } else {
+            $this->app->cookie->delete($this->submitTokenVar['pre'] . $name);
+        }
     }
 
     /**
@@ -1896,11 +1938,7 @@ class Request
                 break;
             // 字符串
             case 's':
-                if (is_scalar($data)) {
-                    $data = (string)$data;
-                } else {
-                    throw new InvalidArgumentException('variable type error：' . gettype($data));
-                }
+                $data = is_scalar($data) ? (string)$data : '';
                 break;
         }
     }

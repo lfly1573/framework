@@ -109,6 +109,7 @@ class Validate
         'url' => ['isUrl', null],
         'date' => ['isDate', null],
         'dateTime' => ['isDateTime', null],
+        'version' => ['isVersion', null],
     ];
 
     /**
@@ -136,6 +137,7 @@ class Validate
         'url' => ':attribute不是一个合法的url地址',
         'date' => ':attribute不是一个正确的日期',
         'dateTime' => ':attribute不是一个正确的日期时间',
+        'version' => ':attribute不是一个正确的版本号',
 
         'in' => ':attribute必须在取值范围 :rule 内',            //in:1,2,3
         'notIn' => ':attribute不能在 :rule 范围内',            //notIn:1,2,3
@@ -463,6 +465,19 @@ class Validate
             if ($this->isDate($getStr[1]) && $this->isTime($getStr[2])) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    /**
+     * 判断类型 version
+     * @param string $value 字段值
+     * @return bool
+     */
+    public function isVersion($value)
+    {
+        if (preg_match('/^[0-9]{1,6}(\.[0-9]{1,6}){0,5}$/', $value)) {
+            return true;
         }
         return false;
     }
@@ -1024,11 +1039,11 @@ class Validate
                 }
                 if (is_bool($result) && $result && !empty($curTypeRule[1])) {
                     if ($curTypeRule[1] instanceof Closure) {
-                        $return['new'] = call_user_func_array($curTypeRule[1], [$value]);
+                        $return['old'] = $return['new'] = call_user_func_array($curTypeRule[1], [$value]);
                     } elseif ($curTypeRule[1][0] == '\\') {
-                        $return['new'] = $curTypeRule[1]($value);
+                        $return['old'] = $return['new'] = $curTypeRule[1]($value);
                     } elseif (method_exists($this, $curTypeRule[1])) {
-                        $return['new'] = call_user_func_array([$this, $curTypeRule[1]], [$value]);
+                        $return['old'] = $return['new'] = call_user_func_array([$this, $curTypeRule[1]], [$value]);
                     }
                 }
             } elseif (method_exists($this, $type)) {
