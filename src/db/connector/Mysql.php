@@ -175,11 +175,12 @@ class Mysql extends PDOConnection
     protected function buildSqlUpdate($query)
     {
         $sql = '';
+        $extra = $this->parseQueryExtra($query);
         $table = $query->getOptions('table', '');
         $data = $this->parseQueryData($query);
         $where = $this->parseQueryWhere($query);
         if (!empty($table) && !empty($data)) {
-            $sql = "UPDATE {$table} SET {$data}{$where}";
+            $sql = "UPDATE{$extra} {$table} SET {$data}{$where}";
         }
         return $sql;
     }

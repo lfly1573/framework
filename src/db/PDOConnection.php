@@ -873,7 +873,9 @@ abstract class PDOConnection implements ConnectionHandlerInterface
     {
         foreach ($bind as $key => $val) {
             $value = is_array($val) ? $val[0] : $val;
-            if (!is_int($value) && !is_float($value)) {
+            if (is_null($value)) {
+                $value = 'null';
+            } elseif (!is_int($value) && !is_float($value)) {
                 $value = '\'' . addslashes($value) . '\'';
             }
             $sql = is_int($key) ?
@@ -990,7 +992,12 @@ abstract class PDOConnection implements ConnectionHandlerInterface
                 array_unshift($val, $param);
                 $result = call_user_func_array([$this->PDOData['PDOStatement'], $mothod], $val);
             } else {
-                $dataType = is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                $dataType = PDO::PARAM_STR;
+                if (is_int($val)) {
+                    $dataType = PDO::PARAM_INT;
+                } elseif (is_null($val)) {
+                    $dataType = PDO::PARAM_NULL;
+                }
                 $result = $this->PDOData['PDOStatement']->$mothod($param, $val, $dataType);
             }
         }

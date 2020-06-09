@@ -25,7 +25,7 @@ class Redis implements CacheHandlerInterface
         'password' => '',
         'database' => 0,
         'timeout' => 0,
-        'expire' => 0,
+        'expire' => 86400,
         'persistent' => false,
         'prefix' => '',
         'serialize' => [],

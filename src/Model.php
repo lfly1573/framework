@@ -197,7 +197,7 @@ class Model
                 } else {
                     $return[$cur[0]] = $value;
                 }
-            } elseif (isset($this->field[$key])) {
+            } elseif (!is_null($value) && isset($this->field[$key])) {
                 $return[$key] = $this->formatByRule($value, $this->field[$key][0]);
             } else {
                 $return[$key] = $value;
