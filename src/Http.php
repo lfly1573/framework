@@ -101,7 +101,7 @@ class Http
      */
     protected function execute($routeData)
     {
-        if ($this->app->request->method == 'OPTIONS') {
+        if ($this->app->request->method() == 'OPTIONS') {
             return $this->app->response->init('', 204);
         }
         $data = '';
