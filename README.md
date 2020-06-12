@@ -7,7 +7,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://gitee.com/lfly1573/framework.git"
+            "url": "https://github.com/lfly1573/framework.git"
         }
     ],
     "require": {
