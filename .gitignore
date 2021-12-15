@@ -1,0 +1,15 @@
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.htaccess
+.DS_Store
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+.idea
+*.out
+/.git/
+.gitkeep
