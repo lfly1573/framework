@@ -96,7 +96,7 @@ class Model
 
     /**
      * 获取当前数据库对象
-     * @return Query
+     * @return \lfly\db\Query
      */
     public function db()
     {

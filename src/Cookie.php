@@ -33,6 +33,7 @@ class Cookie
 
     /**
      * 构造函数
+     * @param \lfly\Config $obj 配置类
      */
     public function __construct(Config $obj)
     {

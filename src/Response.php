@@ -66,12 +66,13 @@ class Response
     protected $template;
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -81,7 +82,7 @@ class Response
     /**
      * 切换引擎(默认是html,切换需要最先调用)
      * @param  string  $type 输出类名
-     * @return Response
+     * @return \lfly\Response
      *
      * @throws InvalidArgumentException
      */

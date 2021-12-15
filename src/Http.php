@@ -14,12 +14,13 @@ use lfly\exception\HttpResponseException;
 class Http
 {
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -28,8 +29,8 @@ class Http
 
     /**
      * 执行应用程序
-     * @param Request|null $request 请求实例
-     * @return Response 输出实例
+     * @param \lfly\Request|null $request 请求实例
+     * @return \lfly\Response
      */
     public function run(Request $request = null) : Response
     {
@@ -60,7 +61,7 @@ class Http
 
     /**
      * HttpEnd
-     * @param Response $response 输出
+     * @param \lfly\Response $response 输出
      * @return void
      */
     public function end(Response $response)

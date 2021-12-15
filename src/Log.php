@@ -26,12 +26,13 @@ class Log
     protected $log = [];
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -50,7 +51,7 @@ class Log
      */
     public function engine($name)
     {
-        $class = (false !== strpos($this->config['type'], '\\')) ? $class : __NAMESPACE__ . '\\log\\' . ucfirst(strtolower($this->config['type']));
+        $class = (false !== strpos($name, '\\')) ? $name : __NAMESPACE__ . '\\log\\' . ucfirst(strtolower($name));
         $this->curDriver = $this->app->invokeClass($class);
         $this->curDriver->init($this->config);
         return $this;

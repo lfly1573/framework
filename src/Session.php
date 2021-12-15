@@ -29,12 +29,13 @@ class Session
     protected $driver;
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -49,7 +50,7 @@ class Session
     /**
      * 获取和设置引擎
      * @param string $class 引擎类
-     * @return SessionHandlerInterface
+     * @return \lfly\contract\SessionHandlerInterface
      */
     public function engine($class = null)
     {

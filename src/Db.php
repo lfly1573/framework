@@ -32,12 +32,13 @@ class Db
     protected $log = [];
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -49,7 +50,7 @@ class Db
      * 创建/切换数据库
      * @param string|null $name  连接名称
      * @param bool        $force 强制重新连接
-     * @return query
+     * @return \lfly\db\Query
      */
     public function connect($name = null, bool $force = false)
     {
@@ -142,16 +143,16 @@ class Db
     /**
      * 创建连接
      * @param $name
-     * @return ConnectionHandlerInterface
+     * @return \lfly\contract\ConnectionHandlerInterface
      */
     protected function createConnection($name)
     {
         $config = $this->config['engine'][$name];
         if (empty($config)) {
-            throw new InvalidArgumentException('database engine error: ' . $name);
+            throw new \InvalidArgumentException('database engine error: ' . $name);
         }
         $type = !empty($config['type']) ? $config['type'] : 'mysql';
-        $class = (false !== strpos($type, '\\')) ? $class : __NAMESPACE__ . '\\db\\connector\\' . ucfirst(strtolower($type));
+        $class = (false !== strpos($type, '\\')) ? $type : __NAMESPACE__ . '\\db\\connector\\' . ucfirst(strtolower($type));
         $connection = new $class($config);
         $connection->setDb($this);
         return $connection;

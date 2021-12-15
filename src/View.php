@@ -24,7 +24,7 @@ class View
     protected $filter;
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
@@ -35,6 +35,7 @@ class View
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -45,7 +46,7 @@ class View
     /**
      * 获取和设置模板引擎
      * @param string $class 模板引擎类
-     * @return TemplateHandlerInterface
+     * @return \lfly\contract\TemplateHandlerInterface
      */
     public function engine($class = null)
     {

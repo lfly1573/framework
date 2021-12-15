@@ -12,7 +12,7 @@ class Query
 {
     /**
      * 当前数据库连接对象
-     * @var ConnectionHandlerInterface
+     * @var \lfly\contract\ConnectionHandlerInterface
      */
     protected $connection;
 
@@ -62,7 +62,7 @@ class Query
 
     /**
      * 构造函数
-     * @param ConnectionHandlerInterface $connection 数据库连接对象
+     * @param \lfly\contract\ConnectionHandlerInterface $connection 数据库连接对象
      */
     public function __construct(ConnectionHandlerInterface $connection)
     {

@@ -26,7 +26,7 @@ class Cache
 
     /**
      * 当前驱动
-     * @var CacheHandlerInterface
+     * @var \lfly\contract\CacheHandlerInterface
      */
     protected $curDriver;
 
@@ -37,12 +37,13 @@ class Cache
     protected $curEngine;
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -68,7 +69,7 @@ class Cache
      * @param string $name 缓存类型
      * @return $this
      * 
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function engine($name = null)
     {
@@ -83,7 +84,7 @@ class Cache
         if (empty($this->config['engine'][$name])) {
             throw new InvalidArgumentException('cache engine error: ' . $name);
         }
-        $class = (false !== strpos($this->config['engine'][$name]['type'], '\\')) ? $class : __NAMESPACE__ . '\\cache\\' . ucfirst(strtolower($this->config['engine'][$name]['type']));
+        $class = (false !== strpos($this->config['engine'][$name]['type'], '\\')) ? $this->config['engine'][$name]['type'] : __NAMESPACE__ . '\\cache\\' . ucfirst(strtolower($this->config['engine'][$name]['type']));
         $this->driver[$name] = $this->app->invokeClass($class);
         $this->driver[$name]->init($this->config['engine'][$name]);
         $this->curDriver = $this->driver[$name];

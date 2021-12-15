@@ -70,12 +70,13 @@ class File
     protected $tempEngine;
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -107,7 +108,7 @@ class File
     /**
      * 初始化引擎
      * @param string $engine 文件类型
-     * @return FileHandlerInterface
+     * @return \lfly\contract\FileHandlerInterface
      * 
      * @throws InvalidArgumentException
      */
@@ -235,8 +236,8 @@ class File
 
     /**
      * 本地保存文件
-     * @param  array $fromFile 原始文件
-     * @param  array $toFile   新文件路径
+     * @param  string $fromFile 原始文件
+     * @param  string $toFile   新文件路径
      * @return string|array
      */
     public function putFile($fromFile, $toFile)

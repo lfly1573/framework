@@ -74,12 +74,13 @@ class Route
     private $otherRules = [];
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -350,7 +351,7 @@ class Route
 
     /**
      * path解析
-     * @param Request $request 请求参数
+     * @param \lfly\Request $request 请求参数
      * @return array
      */
     public function dispatch(Request $request)
@@ -486,10 +487,10 @@ class Route
 
     /**
      * 添加路由规则
-     * @param string           $uri        url地址格式
-     * @param string|callable  $callback   对应控制器或匿名函数
-     * @param array|Route      $attributes 设置参数
-     * @param array            $method     请求类型
+     * @param string            $uri        url地址格式
+     * @param string|callable   $callback   对应控制器或匿名函数
+     * @param array|\lfly\Route $attributes 设置参数
+     * @param array             $method     请求类型
      * @return string
      */
     public function addRule($uri, $callback, $attributes, $method = ['*'])
@@ -581,8 +582,8 @@ class Route
 
     /**
      * 压入组参数
-     * @param Route    $groupObj 组对象
-     * @param callable $callback 回调函数
+     * @param \lfly\Route $groupObj 组对象
+     * @param callable    $callback 回调函数
      * @return array
      */
     public function updateGroupStack(Route $groupObj, callable $callback)
@@ -610,7 +611,7 @@ class Route
     /**
      * 设置未匹配的默认操作
      * @param string|callable $callback 回调函数
-     * @param Route           $routeObj 调用的route类
+     * @param \lfly\Route     $routeObj 调用的route类
      * @return array
      */
     public function setDefault($callback, Route $routeObj = null)

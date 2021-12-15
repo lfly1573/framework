@@ -32,6 +32,13 @@ interface TemplateHandlerInterface
     public function display(string $content, array $data = []);
 
     /**
+     * 获取模版解析后的文件
+     * @param  string $template 模板文件
+     * @return string
+     */
+    public function getFile(string $template);
+
+    /**
      * 配置模板引擎
      * @param  array $config 参数
      * @return void

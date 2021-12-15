@@ -12,13 +12,13 @@ class Controller
 {
     /**
      * 应用实例
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * Request实例
-     * @var Request
+     * @var \lfly\Request
      */
     protected $request;
 
@@ -35,6 +35,7 @@ class Controller
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -120,6 +121,7 @@ class Controller
      * @param int   $code    状态码
      * @param mixed $message 消息内容
      * @param array $data    详细数据
+     * @return void
      */
     protected function json(int $code, $message, array $data = [])
     {

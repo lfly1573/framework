@@ -9,7 +9,7 @@ namespace lfly;
 class Service
 {
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
@@ -27,6 +27,7 @@ class Service
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {

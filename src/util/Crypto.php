@@ -88,7 +88,7 @@ class Crypto
     public static function signRSA($data, $privateKeyPath)
     {
         $priKey = file_get_contents($privateKeyPath);
-        $res = openssl_get_privatekey($priKey);
+        $res = openssl_pkey_get_private($priKey);
         openssl_sign($data, $sign, $res);
         openssl_free_key($res);
         $sign = base64_encode($sign);
@@ -105,7 +105,7 @@ class Crypto
     public static function verifyRSA($data, $publicKeyPath, $sign)
     {
         $pubKey = file_get_contents($publicKeyPath);
-        $res = openssl_get_publickey($pubKey);
+        $res = openssl_pkey_get_public($pubKey);
         $result = (bool)openssl_verify($data, base64_decode($sign), $res);
         openssl_free_key($res);
         return $result;

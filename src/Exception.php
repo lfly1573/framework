@@ -18,12 +18,13 @@ class Exception
     protected $isJson = false;
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -53,7 +54,7 @@ class Exception
      * 显示错误信息
      * @param Request   $request
      * @param Throwable $e
-     * @return Response
+     * @return \lfly\Response
      */
     public function render($request, Throwable $e) : Response
     {

@@ -23,10 +23,16 @@ interface ConnectionHandlerInterface
 
     /**
      * 设置当前的数据库Db对象
-     * @param Db $db
+     * @param \lfly\Db $db
      * @return void
      */
     public function setDb($db);
+
+    /**
+     * 获取当前的数据库Db对象
+     * @return \lfly\Db
+     */
+    public function getDb();
 
     /**
      * 连接数据库

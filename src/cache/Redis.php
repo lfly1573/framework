@@ -2,6 +2,7 @@
 
 /**
  * redis缓存
+ * （需要安装 PHP redis 驱动）
  */
 
 namespace lfly\cache;
@@ -44,7 +45,7 @@ class Redis implements CacheHandlerInterface
         if (!extension_loaded('redis')) {
             throw new \LogicException('extension not exists: redis');
         }
-        $this->handler = new \Redis;
+        $this->handler = new \Redis();
 
         if ($this->config['persistent']) {
             $this->handler->pconnect($this->config['host'], (int)$this->config['port'], (int)$this->config['timeout']);

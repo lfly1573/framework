@@ -32,12 +32,13 @@ class Middleware
     protected $queue = [];
 
     /**
-     * @var App
+     * @var \lfly\App
      */
     protected $app;
 
     /**
      * 构造函数
+     * @param \lfly\App $app 主容器
      */
     public function __construct(App $app)
     {
@@ -155,7 +156,7 @@ class Middleware
     /**
      * 调度管道
      * @param string $type 中间件类型
-     * @return Pipeline
+     * @return \lfly\Pipeline
      */
     public function pipeline(string $type = 'global')
     {
@@ -179,7 +180,7 @@ class Middleware
 
     /**
      * 结束调度
-     * @param Response $response
+     * @param \lfly\Response $response 输出对象
      */
     public function end(Response $response)
     {
@@ -198,9 +199,9 @@ class Middleware
 
     /**
      * 异常处理
-     * @param Request   $passable
-     * @param Throwable $e
-     * @return Response
+     * @param \lfly\Request  $passable
+     * @param \Throwable     $e
+     * @return \lfly\Response
      */
     public function handleException($passable, Throwable $e)
     {

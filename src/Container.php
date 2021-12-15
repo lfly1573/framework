@@ -18,6 +18,7 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use Traversable;
 
 class Container implements ArrayAccess, IteratorAggregate, Countable
 {
@@ -471,7 +472,7 @@ class Container implements ArrayAccess, IteratorAggregate, Countable
      */
 
     //isset(obj[key])
-    public function offsetExists($key)
+    public function offsetExists($key): bool
     {
         return $this->exists($key);
     }
@@ -483,13 +484,13 @@ class Container implements ArrayAccess, IteratorAggregate, Countable
     }
 
     //obj[key] = value
-    public function offsetSet($key, $value)
+    public function offsetSet($key, $value): void
     {
         $this->bind($key, $value);
     }
 
     //unset(obj[key])
-    public function offsetUnset($key)
+    public function offsetUnset($key): void
     {
         $this->delete($key);
     }
@@ -498,7 +499,7 @@ class Container implements ArrayAccess, IteratorAggregate, Countable
      * Countable
      * count(obj)
      */
-    public function count()
+    public function count(): int
     {
         return count($this->instances);
     }
@@ -507,7 +508,7 @@ class Container implements ArrayAccess, IteratorAggregate, Countable
      * IteratorAggregate
      * foreach(obj as $key => $value)
      */
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->instances);
     }

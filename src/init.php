@@ -4,7 +4,7 @@
  * 框架载入初始页
  */
 
-define('LFLY_VERSION', '1.0');
+define('LFLY_VERSION', '1.1');
 define('LFLY_START_TIME', microtime(true));
 define('LFLY_START_MEMORY', memory_get_usage());
 define('DS', DIRECTORY_SEPARATOR);

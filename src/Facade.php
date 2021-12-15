@@ -18,13 +18,13 @@ class Facade
 
     /**
      * 以下方法不用新建实例
-     * @var bool
+     * @var array
      */
     protected static $specialMethod = [];
 
     /**
      * 新建实例传入参数
-     * @var bool
+     * @var array
      */
     protected static $newArgs = [];
 
