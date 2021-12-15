@@ -451,7 +451,7 @@ class Validate
      */
     public function isTime($value, $sep = ':')
     {
-        return preg_match("/^([0-1]?[0-9]|2[0-3]){$sep}([0-5]?[0-9]){$sep}([0-5]?[0-9])$/", $value);
+        return preg_match("/^([0-1]?[0-9]|2[0-3]){$sep}([0-5]?[0-9]){$sep}([0-5]?[0-9])$/", $value) ? true : false;
     }
 
     /**

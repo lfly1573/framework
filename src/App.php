@@ -20,6 +20,7 @@ namespace lfly;
  * @property Log        $log
  * @property Middleware $middleware
  * @property Request    $request
+ * @property Response   $response
  * @property Route      $route
  * @property Service    $service
  * @property Session    $session
