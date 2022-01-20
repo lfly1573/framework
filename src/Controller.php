@@ -131,7 +131,7 @@ class Controller
     /**
      * 载入模型
      * @param string $model 模型名
-     * @return object
+     * @return \lfly\Model
      */
     protected function model($model)
     {

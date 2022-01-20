@@ -48,7 +48,7 @@ class Container implements ArrayAccess, IteratorAggregate, Countable
 
     /**
      * 静态获取当前容器的实例
-     * @return static
+     * @return $this
      */
     public static function getInstance()
     {

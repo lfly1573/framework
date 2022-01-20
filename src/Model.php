@@ -34,6 +34,12 @@ class Model
     protected $field = [];
 
     /**
+     * 设置是否自动刷新缓存字段数据，需缓存模块支持
+     * @var bool
+     */
+    protected $refreshCacheField = true;
+
+    /**
      * 设置当前输入转换
      * ['输入字段名称'=>[
      *      '对应数据库实际字段',
@@ -476,7 +482,7 @@ class Model
         $db = $this->db();
         $cacheFile = CACHE_PATH . $db->getDbSign() . '/' . $db->getOptions('table') . EXT;
         $cacheTime = is_file($cacheFile) ? filemtime($cacheFile) : 0;
-        $refreshTime = $db->getChangeFieldTime();
+        $refreshTime = $this->refreshCacheField ? $db->getChangeFieldTime() : 0;
         if ($cacheTime > 0 && $cacheTime >= $refreshTime) {
             $fieldArray = (include $cacheFile);
         } else {
