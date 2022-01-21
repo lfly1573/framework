@@ -93,9 +93,12 @@ class Model
     /**
      * 构造函数
      */
-    public function __construct($table = null)
+    public function __construct($table = null, $refreshCacheField = true)
     {
         $this->setTable($table);
+        if (!$refreshCacheField) {
+            $this->setNotRefreshCacheField($refreshCacheField);
+        }
         $this->init();
         $this->setConfig();
     }
@@ -143,6 +146,17 @@ class Model
     public function setNotSoftDeleted(bool $value = false)
     {
         $this->softDeleted = $value;
+        return $this;
+    }
+
+    /**
+     * 设置不检测字段更改缓存变化
+     * @param bool $value 是否检测字段更改缓存变化
+     * @return $this
+     */
+    public function setNotRefreshCacheField(bool $value = false)
+    {
+        $this->refreshCacheField = $value;
         return $this;
     }
 
@@ -226,7 +240,7 @@ class Model
             $return[$updateTime] = time();
         }
         foreach ($this->config['json'] as $key) {
-            if (isset($return[$key]) && is_array($return[$key])) {
+            if (isset($return[$key]) && (is_array($return[$key]) || is_object($return[$key]))) {
                 $return[$key] = json_encode($return[$key]);
             }
         }
@@ -263,7 +277,7 @@ class Model
             }
         }
         foreach ($this->config['json'] as $key) {
-            if (isset($return[$key]) && !is_array($return[$key])) {
+            if (isset($return[$key]) && (!is_array($return[$key]) || !is_object($return[$key]))) {
                 $return[$key] = @json_decode($return[$key], true);
             }
         }
@@ -308,7 +322,7 @@ class Model
                     if (isset($value[1])) {
                         $return[$key] = $this->formatByRule($data[$key], $value[1], $data, $value[0]);
                     }
-                    if (in_array($value[0], $this->config['json']) && !is_array($return[$key])) {
+                    if (in_array($value[0], $this->config['json']) && (!is_array($return[$key]) || !is_object($return[$key]))) {
                         $return[$key] = @json_decode($return[$key], true);
                     }
                 }
@@ -462,7 +476,7 @@ class Model
             } elseif ($rule == 'bool') {
                 $value = !empty($value) ? 1 : 0;
             } elseif ($rule == 'string') {
-                if (!is_string($value) && !is_array($value)) {
+                if (!is_string($value) && !is_array($value) && !is_object($value)) {
                     $value = strval($value);
                 }
             } elseif ($rule[0] == '\\') {
