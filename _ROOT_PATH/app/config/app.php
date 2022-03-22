@@ -19,6 +19,8 @@ return [
     'web_upfile_url' => '',
     //全局加密密钥
     'web_secret_key' => '',
+    //设置表单提交令牌保存参数(默认session，分布式部署请额外设定)
+    //'web_submit_token' => ['name' => '默认变量名: submitToken', 'pre' => '变量前缀: st_', 'saveType' => '保存类型: cache/cookie/session'],
     //前端代理ip地址数组，用于获取真实ip
     'proxy_server_ip' => [],
     //默认时区
@@ -71,6 +73,8 @@ return [
     //数据库配置
     'database' => [
         'default' => 'mysql',
+        //是否自动刷新字段缓存，开启需要缓存模块支持
+        'refreshCacheField' => false,
         'engine' => [
             'mysql' => [
                 //类型

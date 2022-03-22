@@ -253,7 +253,7 @@ class Request
      * 请求token变量
      * @var array
      */
-    protected $submitTokenVar = ['name' => 'submitToken', 'pre' => 'st_', 'saveType' => 'cache'];
+    protected $submitTokenVar = ['name' => 'submitToken', 'pre' => 'st_', 'saveType' => 'session'];
 
     /**
      * @var \lfly\App
@@ -275,6 +275,10 @@ class Request
         $webDomain = $this->app->config->get('web_domain', '');
         if ($webDomain != '') {
             $this->setMainDomain($webDomain);
+        }
+        $submitTokenValue = $this->app->config->get('web_submit_token', []);
+        if (!empty($submitTokenValue)) {
+            $this->setSubmitTokenVar($submitTokenValue);
         }
         $proxyServerIp = $this->app->config->get('proxy_server_ip', []);
         if (!empty($proxyServerIp)) {
@@ -892,6 +896,8 @@ class Request
                 $this->app->cookie->set($this->submitTokenVar['pre'] . $this->submitTokenVar['name'], $myCacheId, 0, true);
             }
             $this->app->cache->push($this->submitTokenVar['pre'] . $this->submitTokenVar['name'] . '_' . $myCacheId, md5($name . '*LFLY#' . $token), $name, 36000);
+        } elseif ($this->submitTokenVar['saveType'] == 'session') {
+            $this->app->session->set($this->submitTokenVar['pre'] . $name, md5($name . '*LFLY#' . $token));
         } else {
             $this->app->cookie->set($this->submitTokenVar['pre'] . $name, md5($name . '*LFLY#' . $token), 0, true);
         }
@@ -935,6 +941,8 @@ class Request
         if ($this->submitTokenVar['saveType'] == 'cache') {
             $myCacheId = $this->app->cookie->get($this->submitTokenVar['pre'] . $this->submitTokenVar['name'], '');
             $setValue = !empty($myCacheId) ? $this->app->cache->getItem($this->submitTokenVar['pre'] . $this->submitTokenVar['name'] . '_' . $myCacheId, $name, '') : '';
+        } elseif ($this->submitTokenVar['saveType'] == 'session') {
+            $setValue = $this->app->session->get($this->submitTokenVar['pre'] . $name, '');
         } else {
             $setValue = $this->app->cookie->get($this->submitTokenVar['pre'] . $name, '');
         }
@@ -974,6 +982,8 @@ class Request
             if (!empty($myCacheId)) {
                 $this->app->cache->push($this->submitTokenVar['pre'] . $this->submitTokenVar['name'] . '_' . $myCacheId, null, $name, 36000);
             }
+        } elseif ($this->submitTokenVar['saveType'] == 'session') {
+            $this->app->session->delete($this->submitTokenVar['pre'] . $name);
         } else {
             $this->app->cookie->delete($this->submitTokenVar['pre'] . $name);
         }
@@ -1083,6 +1093,18 @@ class Request
     public function isCgi()
     {
         return strpos(PHP_SAPI, 'cgi') === 0;
+    }
+
+
+    /**
+     * 设置提交令牌参数
+     * @param  array $tokenVar 提交令牌参数
+     * @return $this
+     */
+    public function setSubmitTokenVar(array $tokenVar)
+    {
+        $this->submitTokenVar = array_merge($this->submitTokenVar, $tokenVar);
+        return $this;
     }
 
     /**

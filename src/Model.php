@@ -37,7 +37,7 @@ class Model
      * 设置是否自动刷新缓存字段数据，需缓存模块支持
      * @var bool
      */
-    protected $refreshCacheField = true;
+    protected $refreshCacheField = false;
 
     /**
      * 设置当前输入转换
@@ -93,10 +93,13 @@ class Model
     /**
      * 构造函数
      */
-    public function __construct($table = null, $refreshCacheField = true)
+    public function __construct($table = null, $refreshCacheField = null)
     {
         $this->setTable($table);
-        if (!$refreshCacheField) {
+        if (is_null($refreshCacheField)) {
+            $refreshCacheField = \Config::get('database.refreshCacheField', false);
+        }
+        if (is_bool($refreshCacheField) === true) {
             $this->setNotRefreshCacheField($refreshCacheField);
         }
         $this->init();
