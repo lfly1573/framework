@@ -59,6 +59,7 @@ class App extends Container
         'controller' => Controller::class,
         'cookie' => Cookie::class,
         'db' => Db::class,
+        'env' => Env::class,
         'event' => Event::class,
         'exception' => Exception::class,
         'file' => File::class,

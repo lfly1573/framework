@@ -13,3 +13,4 @@ Desktop.ini
 *.out
 /.git/
 .gitkeep
+.env
