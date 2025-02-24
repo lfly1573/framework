@@ -6,6 +6,8 @@
 
 namespace lfly\contract;
 
+use Generator;
+
 interface ConnectionHandlerInterface
 {
     /**

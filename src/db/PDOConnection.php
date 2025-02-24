@@ -6,6 +6,7 @@
 
 namespace lfly\db;
 
+use Generator;
 use PDO;
 use PDOStatement;
 use PDOException;
@@ -464,7 +465,7 @@ abstract class PDOConnection implements ConnectionHandlerInterface
      * @param Query  $query 查询对象
      * @param string $sql   sql指令
      * @param array  $bind  参数绑定
-     * @return array
+     * @return Generator
      */
     public function cursor($query, $sql = '', array $bind = [])
     {

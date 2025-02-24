@@ -7,7 +7,32 @@
 namespace lfly\db;
 
 use lfly\contract\ConnectionHandlerInterface;
+use lfly\Db;
 
+/**
+ * @method Db getDb()
+ * @method mixed getConfig($config = '')
+ * @method PDOConnection connect(array $config = [], $linkNum = 0)
+ * @method mixed close()
+ * @method array query($sql = '', array $bind = [])
+ * @method \Generator cursor($sql = '', array $bind = [])
+ * @method array execute($sql = '', array $bind = [])
+ * @method int count($field = '*')
+ * @method array find()
+ * @method array select()
+ * @method int|bool insert(array $data = [], bool $getId = false)
+ * @method int insertAll(array $dataList = [])
+ * @method int update(array $data = [])
+ * @method int delete()
+ * @method mixed value($field, $default = null)
+ * @method array column($column = '*', $key = null)
+ * @method bool exists()
+ * @method string buildSql($type = 'select')
+ * @method void startTrans()
+ * @method void commit()
+ * @method void rollback()
+ * @method string getLastSql()
+ */
 class Query
 {
     /**
