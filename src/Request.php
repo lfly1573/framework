@@ -304,12 +304,12 @@ class Request
             }
         }
 
+        $this->header = array_change_key_case($header);
         $this->input = file_get_contents('php://input');
         $inputData = $this->getInputData($this->input);
-        $this->header = array_change_key_case($header);
         $this->server = $_SERVER;
         $this->get = $_GET;
-        $this->post = $_POST ? $_POST : $inputData;
+        $this->post = $_POST ?: $inputData;
         $this->put = $inputData;
         $this->request = $_REQUEST;
     }
